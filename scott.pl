@@ -1108,15 +1108,11 @@ sub LoadDatabase {
         $room{Text} = ReadString($fh);
         push @Rooms => \%room;
     }
-#    ct=0;
-#    if(loud)
-#        printf("Reading %d messages.\n",mn);
-#    while(ct<mn+1)
-#    {
-#        Messages[ct]=ReadString(f);
-#        ct++;
-#    }
-#    ct=0;
+
+    for ( 0 .. $GameHeader{NumMessages} ) {
+        push @Messages => ReadString($fh);
+    }
+
 #    if(loud)
 #        printf("Reading %d items.\n",ni);
 #    ip=Items;
