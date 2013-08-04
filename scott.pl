@@ -74,7 +74,7 @@ my @Actions;
 my @Rooms;
 my @Verbs;
 my @Nouns;
-#char **Messages;
+my @Messages;
 #Action *Actions;
 my $LightRefill;
 #char NounText[16];
@@ -1054,19 +1054,18 @@ sub _get_int {
 
 sub ReadString {
     my $fh = shift;
-    chomp(my $word = <$fh>);
-    $word =~ s/^"|"//g;
+    chomp( my $word = <$fh> );
+    while ( $word !~ /"$/ ) {
+        chomp( $word .= "\n" . <$fh> );
+    }
+    $word =~ s/^"|"$//g;
     return $word;
 }
 
 sub LoadDatabase {
     my ( $db, $loud ) = @_;
     open my $fh, '<', $db;
-    my $ct;
-    my $lo;
-    #Action *ap;
-    #Room *rp;
-    #Item *ip;
+
     my @headers = qw(
         Unknown1
         NumItems  NumActions  NumWords     NumRooms
@@ -1079,10 +1078,6 @@ sub LoadDatabase {
 
     $LightRefill = $GameHeader{LightTime};
 
-# Load the actions
-#
-#    if(loud)
-#        printf("Reading %d actions.\n",na);
     for my $i ( 0 .. $GameHeader{NumActions} ) {
         my %action = (
             Vocab     => _get_int($fh),
@@ -1097,18 +1092,10 @@ sub LoadDatabase {
         push @Actions => \%action;
     }
 
-
-#    if(loud)
-#        printf("Reading %d word pairs.\n",nw);
-#    while(ct<nw+1)
     for ( 0 .. $GameHeader{NumWords} ) {
         push @Verbs => ReadString($fh);
         push @Nouns => ReadString($fh);
     }
-#    ct=0;
-#    rp=Rooms;
-#    if(loud)
-#        printf("Reading %d rooms.\n",nr);
 
     foreach (0 .. $GameHeader{NumRooms} ) {
         my %room = (
