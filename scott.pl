@@ -1078,10 +1078,9 @@ sub LoadDatabase {
 
 # Load the actions
 #
-     my $counter=0;
 #    if(loud)
 #        printf("Reading %d actions.\n",na);
-    while ( $counter <= $GameHeader{NumActions} ) {
+    for my $i ( 0 .. $GameHeader{NumActions} ) {
         my $action = dclone( \%Actions );
         $action->{Vocab} = _get_int($fh);
         for ( 1 .. 5 ) {
@@ -1089,13 +1088,10 @@ sub LoadDatabase {
         }
         $action->{Action}[0] = _get_int($fh);
         $action->{Action}[1] = _get_int($fh);
-
-        #$action->{Action}[0] != 8; # ???
         push @Actions => $action;
-        $counter++;
     }
 
-#    ct=0;
+
 #    if(loud)
 #        printf("Reading %d word pairs.\n",nw);
 #    while(ct<nw+1)
