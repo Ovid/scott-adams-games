@@ -11,4 +11,5 @@ ScottCurses.o:	ScottCurses.c Scott.h
 ScottCurses:	ScottCurses.o
 	$(CC) ScottCurses.o -o ScottCurses -lcurses -ltermcap
 
-
+run: ScottCurses
+	./ScottCurses adv00
