@@ -38,11 +38,6 @@ my %GameHeader = map { $_ => 0 } qw(
 );
 
 my @Actions;
-my %Actions = (
-    Vocab     => undef,
-    Condition => [], # five elements
-    Action    => [], # two elements
-);
 
 #
 #typedef struct
@@ -76,8 +71,9 @@ my %Actions = (
 #Tail GameTail;
 #Item *Items;
 #Room *Rooms;
-#char **Verbs;
-#char **Nouns;
+my @Rooms;
+my @Verbs;
+my @Nouns;
 #char **Messages;
 #Action *Actions;
 my $LightRefill;
@@ -954,7 +950,7 @@ sub main {
             exit;
         },
     );
-
+$ARGV[0] //= 'adv00'; # XXX remove
     if ( !@ARGV ) {
         warn "$0 <database> <savefile>.\n";
         exit(1);
@@ -1056,6 +1052,13 @@ sub _get_int {
     return $int;
 }
 
+sub ReadString {
+    my $fh = shift;
+    chomp(my $word = <$fh>);
+    $word =~ s/^"|"//g;
+    return $word;
+}
+
 sub LoadDatabase {
     my ( $db, $loud ) = @_;
     open my $fh, '<', $db;
@@ -1081,38 +1084,43 @@ sub LoadDatabase {
 #    if(loud)
 #        printf("Reading %d actions.\n",na);
     for my $i ( 0 .. $GameHeader{NumActions} ) {
-        my $action = dclone( \%Actions );
-        $action->{Vocab} = _get_int($fh);
+        my %action = (
+            Vocab     => _get_int($fh),
+            Condition => [],
+            Action    => [],
+        );
         for ( 1 .. 5 ) {
-            push @{ $action->{Condition} } => _get_int($fh);
+            push @{ $action{Condition} } => _get_int($fh);
         }
-        $action->{Action}[0] = _get_int($fh);
-        $action->{Action}[1] = _get_int($fh);
-        push @Actions => $action;
+        $action{Action}[0] = _get_int($fh);
+        $action{Action}[1] = _get_int($fh);
+        push @Actions => \%action;
     }
 
 
 #    if(loud)
 #        printf("Reading %d word pairs.\n",nw);
 #    while(ct<nw+1)
-#    {
-#        Verbs[ct]=ReadString(f);
-#        Nouns[ct]=ReadString(f);
-#        ct++;
-#    }
+    for ( 0 .. $GameHeader{NumWords} ) {
+        push @Verbs => ReadString($fh);
+        push @Nouns => ReadString($fh);
+    }
 #    ct=0;
 #    rp=Rooms;
 #    if(loud)
 #        printf("Reading %d rooms.\n",nr);
-#    while(ct<nr+1)
-#    {
-#        fscanf(f,"%hd %hd %hd %hd %hd %hd",
-#            &rp->Exits[0],&rp->Exits[1],&rp->Exits[2],
-#            &rp->Exits[3],&rp->Exits[4],&rp->Exits[5]);
-#        rp->Text=ReadString(f);
-#        ct++;
-#        rp++;
-#    }
+
+    foreach (0 .. $GameHeader{NumRooms} ) {
+        my %room = (
+            Text  => undef,
+            Exits => [],
+        );
+        for (1 .. 6) {
+            push @{ $room{Exits} } => _get_int($fh);
+        }
+        $room{Text} = ReadString($fh);
+        push @Rooms => \%room;
+    }
 #    ct=0;
 #    if(loud)
 #        printf("Reading %d messages.\n",mn);
