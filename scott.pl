@@ -5,6 +5,7 @@ use warnings;
 use 5.010;
 use Getopt::Long;
 use autodie ':all';
+use Carp 'croak';
  
 use constant LIGHT_SOURCE => 9;   # /* Always 9 how odd */
 use constant CARRIED      => 255; # /* Carried */
@@ -19,8 +20,8 @@ my $TRS80_STYLE      = 0;    #	/* Display in style used on TRS-80 */
 my $PREHISTORIC_LAMP = 1;    #	/* Destroy the lamp (very old databases) */
  
 #     NumWords        /* Smaller of verb/noun is padded to same size */
-my $GameHeader = map { $_ => 0 } qw(
-  Unknown
+my %GameHeader = map { $_ => 0 } qw(
+  Unknown1
   NumItems
   NumActions
   NumWords
@@ -32,6 +33,7 @@ my $GameHeader = map { $_ => 0 } qw(
   LightTime
   NumMessages
   TreasureRoom
+  Unknown2
 );
 
 #my %Actions = map { 
@@ -76,7 +78,7 @@ my $GameHeader = map { $_ => 0 } qw(
 #char **Nouns;
 #char **Messages;
 #Action *Actions;
-#int LightRefill;
+my $LightRefill;
 #char NounText[16];
 #int Counters[16];    /* Range unknown */
 #int CurrentCounter;
@@ -955,7 +957,6 @@ sub main {
         warn "$0 <database> <savefile>.\n";
         exit(1);
     }
-    my $fh = open '<', $ARGV[0];
     if ($TRS80_STYLE)
     {
         $Width = 64;
@@ -973,7 +974,7 @@ Scott Free, A Scott Adams game driver in C.\n\
 Release 1.14, (c) 1993,1994,1995 Swansea University Computer Society.\n\
 Distributed under the GNU software license\n\n");
 END
-    LoadDatabase($fh,$DEBUGGING);
+    LoadDatabase($ARGV[0],$DEBUGGING);
 #    fclose(f);
 #    if(argc==3)
 #        LoadGame(argv[2]);
@@ -1042,128 +1043,148 @@ END
 }
 main();
 
-sub LoadDatabase(FILE *f, int loud)
-{
-    my ( $fh, $loud ) = @_;
-    my ($ni,$na,$nw,$nr,$mc,$pr,$tr,$wl,$lt,$mn,$trm);
+sub _get_int {
+    my $fh = shift;
+    chomp(my $int = <$fh>);
+    $int =~ s/^\s+|\s+$//g;
+    unless ($int =~ /^[0-9]+$/ && $int >= 0) {
+        croak("Read '$int' from database. Need an int");
+    }
+    return $int;
+}
+
+sub LoadDatabase {
+    my ( $db, $loud ) = @_;
+    open my $fh, '<', $db;
     my $ct;
     my $lo;
-    Action *ap;
-    Room *rp;
-    Item *ip;
-/* Load the header */
-    
-    if(fscanf(f,"%*d %d %d %d %d %d %d %d %d %d %d %d",
-        &ni,&na,&nw,&nr,&mc,&pr,&tr,&wl,&lt,&mn,&trm,&ct)<10)
-        Fatal("Invalid database(bad header)");
-    GameHeader.NumItems=ni;
-    Items=(Item *)MemAlloc(sizeof(Item)*(ni+1));
-    GameHeader.NumActions=na;
-    Actions=(Action *)MemAlloc(sizeof(Action)*(na+1));
-    GameHeader.NumWords=nw;
-    GameHeader.WordLength=wl;
-    Verbs=(char **)MemAlloc(sizeof(char *)*(nw+1));
-    Nouns=(char **)MemAlloc(sizeof(char *)*(nw+1));
-    GameHeader.NumRooms=nr;
-    Rooms=(Room *)MemAlloc(sizeof(Room)*(nr+1));
-    GameHeader.MaxCarry=mc;
-    GameHeader.PlayerRoom=pr;
-    GameHeader.Treasures=tr;
-    GameHeader.LightTime=lt;
-    LightRefill=lt;
-    GameHeader.NumMessages=mn;
-    Messages=(char **)MemAlloc(sizeof(char *)*(mn+1));
-    GameHeader.TreasureRoom=trm;
-    
-/* Load the actions */
+    #Action *ap;
+    #Room *rp;
+    #Item *ip;
+    my @headers = qw(
+        Unknown1
+        NumItems  NumActions  NumWords     NumRooms
+        MaxCarry  PlayerRoom  Treasures    WordLength
+        LightTime NumMessages TreasureRoom Unknown2
+    );
+    foreach my $header (@headers) {
+        $GameHeader{$header}   = _get_int($fh);
+    }
 
-    ct=0;
-    ap=Actions;
-    if(loud)
-        printf("Reading %d actions.\n",na);
-    while(ct<na+1)
-    {
-        if(fscanf(f,"%hd %hd %hd %hd %hd %hd %hd %hd",
-            &ap->Vocab,
-            &ap->Condition[0],
-            &ap->Condition[1],
-            &ap->Condition[2],
-            &ap->Condition[3],
-            &ap->Condition[4],
-            &ap->Action[0],
-            &ap->Action[1])!=8)
-        {
-            printf("Bad action line (%d)\n",ct);
-            exit(1);
-        }
-        ap++;
-        ct++;
-    }            
-    ct=0;
-    if(loud)
-        printf("Reading %d word pairs.\n",nw);
-    while(ct<nw+1)
-    {
-        Verbs[ct]=ReadString(f);
-        Nouns[ct]=ReadString(f);
-        ct++;
-    }
-    ct=0;
-    rp=Rooms;
-    if(loud)
-        printf("Reading %d rooms.\n",nr);
-    while(ct<nr+1)
-    {
-        fscanf(f,"%hd %hd %hd %hd %hd %hd",
-            &rp->Exits[0],&rp->Exits[1],&rp->Exits[2],
-            &rp->Exits[3],&rp->Exits[4],&rp->Exits[5]);
-        rp->Text=ReadString(f);
-        ct++;
-        rp++;
-    }
-    ct=0;
-    if(loud)
-        printf("Reading %d messages.\n",mn);
-    while(ct<mn+1)
-    {
-        Messages[ct]=ReadString(f);
-        ct++;
-    }
-    ct=0;
-    if(loud)
-        printf("Reading %d items.\n",ni);
-    ip=Items;
-    while(ct<ni+1)
-    {
-        ip->Text=ReadString(f);
-        ip->AutoGet=strchr(ip->Text,'/');
-        /* Some games use // to mean no auto get/drop word! */
-        if(ip->AutoGet && strcmp(ip->AutoGet,"//") && strcmp(ip->AutoGet,"/*"))
-        {
-            char *t;
-            *ip->AutoGet++=0;
-            t=strchr(ip->AutoGet,'/');
-            if(t!=NULL)
-                *t=0;
-        }
-        fscanf(f,"%hd",&lo);
-        ip->Location=(unsigned char)lo;
-        ip->InitialLoc=ip->Location;
-        ip++;
-        ct++;
-    }
-    ct=0;
-    /* Discard Comment Strings */
-    while(ct<na+1)
-    {
-        free(ReadString(f));
-        ct++;
-    }
-    fscanf(f,"%d",&ct);
-    if(loud)
-        printf("Version %d.%02d of Adventure ",
-        ct/100,ct%100);
-    fscanf(f,"%d",&ct);
-    if(loud)
-        printf("%d.\nLoad Complete.\n\n",ct);
+    $LightRefill = $GameHeader{LightTime};
+use Data::Dumper::Simple;
+$Data::Dumper::Indent   = 1;
+$Data::Dumper::Sortkeys = 1;
+print Dumper(%GameHeader, $LightRefill);
+    
+    
+#    GameHeader.NumItems=ni;
+#    Items=(Item *)MemAlloc(sizeof(Item)*(ni+1));
+#    GameHeader.NumActions=na;
+#    Actions=(Action *)MemAlloc(sizeof(Action)*(na+1));
+#    GameHeader.NumWords=nw;
+#    GameHeader.WordLength=wl;
+#    Verbs=(char **)MemAlloc(sizeof(char *)*(nw+1));
+#    Nouns=(char **)MemAlloc(sizeof(char *)*(nw+1));
+#    GameHeader.NumRooms=nr;
+#    Rooms=(Room *)MemAlloc(sizeof(Room)*(nr+1));
+#    GameHeader.MaxCarry=mc;
+#    GameHeader.PlayerRoom=pr;
+#    GameHeader.Treasures=tr;
+#    GameHeader.LightTime=lt;
+#    LightRefill=lt;
+#    GameHeader.NumMessages=mn;
+#    Messages=(char **)MemAlloc(sizeof(char *)*(mn+1));
+#    GameHeader.TreasureRoom=trm;
+#    
+#/* Load the actions */
+#
+     my $counter=0;
+#    ap=Actions;
+#    if(loud)
+#        printf("Reading %d actions.\n",na);
+     while ( $counter <= $GameHeader{NumActions} ) {
+#        if(fscanf(f,"%hd %hd %hd %hd %hd %hd %hd %hd",
+#            &ap->Vocab,
+#            &ap->Condition[0],
+#            &ap->Condition[1],
+#            &ap->Condition[2],
+#            &ap->Condition[3],
+#            &ap->Condition[4],
+#            &ap->Action[0],
+#            &ap->Action[1])!=8)
+#        {
+#            printf("Bad action line (%d)\n",ct);
+#            exit(1);
+#        }
+#        ap++;
+#        ct++;
+#    }            
+#    ct=0;
+#    if(loud)
+#        printf("Reading %d word pairs.\n",nw);
+#    while(ct<nw+1)
+#    {
+#        Verbs[ct]=ReadString(f);
+#        Nouns[ct]=ReadString(f);
+#        ct++;
+#    }
+#    ct=0;
+#    rp=Rooms;
+#    if(loud)
+#        printf("Reading %d rooms.\n",nr);
+#    while(ct<nr+1)
+#    {
+#        fscanf(f,"%hd %hd %hd %hd %hd %hd",
+#            &rp->Exits[0],&rp->Exits[1],&rp->Exits[2],
+#            &rp->Exits[3],&rp->Exits[4],&rp->Exits[5]);
+#        rp->Text=ReadString(f);
+#        ct++;
+#        rp++;
+#    }
+#    ct=0;
+#    if(loud)
+#        printf("Reading %d messages.\n",mn);
+#    while(ct<mn+1)
+#    {
+#        Messages[ct]=ReadString(f);
+#        ct++;
+#    }
+#    ct=0;
+#    if(loud)
+#        printf("Reading %d items.\n",ni);
+#    ip=Items;
+#    while(ct<ni+1)
+#    {
+#        ip->Text=ReadString(f);
+#        ip->AutoGet=strchr(ip->Text,'/');
+#        /* Some games use // to mean no auto get/drop word! */
+#        if(ip->AutoGet && strcmp(ip->AutoGet,"//") && strcmp(ip->AutoGet,"/*"))
+#        {
+#            char *t;
+#            *ip->AutoGet++=0;
+#            t=strchr(ip->AutoGet,'/');
+#            if(t!=NULL)
+#                *t=0;
+#        }
+#        fscanf(f,"%hd",&lo);
+#        ip->Location=(unsigned char)lo;
+#        ip->InitialLoc=ip->Location;
+#        ip++;
+#        ct++;
+#    }
+#    ct=0;
+#    /* Discard Comment Strings */
+#    while(ct<na+1)
+#    {
+#        free(ReadString(f));
+#        ct++;
+#    }
+#    fscanf(f,"%d",&ct);
+#    if(loud)
+#        printf("Version %d.%02d of Adventure ",
+#        ct/100,ct%100);
+#    fscanf(f,"%d",&ct);
+#    if(loud)
+#        printf("%d.\nLoad Complete.\n\n",ct);
 }
