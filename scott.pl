@@ -1184,25 +1184,9 @@ END
 
 sub Look {
     my @ExitNames = qw(North South East West Up Down);
-    
-    #Room *r;
-    #int ct,f;
-    #int pos;
 
-    #if((BitFlags&(1<<DARKBIT)) && Items[LIGHT_SOURCE].Location!= CARRIED
-    #            && Items[LIGHT_SOURCE].Location!= MyLoc)
-    #{
-    #    if(Options&YOUARE)
-    #        print(Top,"You can't see. It is too dark!\n");
-    #    else
-    #        print(Top,"I can't see. It is too dark!\n");
-    #    if (Options & TRS80_STYLE)
-    #        print(Top,TRS80_LINE);
-    #    wrefresh(Top);
-    #    return;
-    #}
     my $r = $Rooms[MyLoc];
-#    print Dumper($r);
+
     if ( $r->{Text} eq '*' ) {
         print( $Rooms[ MyLoc + 1 ]->{Text} );
     }
@@ -1214,12 +1198,12 @@ sub Look {
             printf( "I'm in a %s\n", $r->{Text} );
         }
     }
-    #ct=0;
+
     my $f = 0;
     print("\nObvious exits: ");
     foreach ( 0 .. 5 ) {
         if ( $r->{Exits}[$_] ) {
-            if (!$f) {
+            if ( !$f ) {
                 $f = 1;
             }
             else {
@@ -1229,47 +1213,29 @@ sub Look {
         }
     }
 
-    #if(f==0)
-    #    print(Top,"none");
-    #print(Top,".\n");
-    #ct=0;
-    #f=0;
-    #pos=0;
-    #while(ct<=GameHeader.NumItems)
-    #{
-    #    if(Items[ct].Location==MyLoc)
-    #    {
-    #        if(f==0)
-    #        {
-    #            if(Options&YOUARE)
-    #                print(Top,"\nYou can also see: ");
-    #            else
-    #                print(Top,"\nI can also see: ");
-    #            pos=16;
-    #            f++;
-    #        }
-    #        else if (!(Options & TRS80_STYLE))
-    #        {
-    #            print(Top," - ");
-    #            pos+=3;
-    #        }
-    #        if(pos+strlen(Items[ct].Text)>(Width-10))
-    #        {
-    #            pos=0;
-    #            print(Top,"\n");
-    #        }
-    #        print(Top,"%s",Items[ct].Text);
-    #        pos += strlen(Items[ct].Text);
-    #        if (Options & TRS80_STYLE)
-    #        {
-    #            print(Top,". ");
-    #            pos+=2;
-    #        }
-    #    }
-    #    ct++;
-    #}
-    #print(Top,"\n");
-    #if (Options & TRS80_STYLE)
-    #    print(Top,TRS80_LINE);
-    #wrefresh(Top);
+    if ( !$f ) {
+        say("none");
+    }
+    else {
+        print "\n\n";
+    }
+
+    $f = 0;
+    my $pos = 0;
+
+    foreach my $i ( 0 .. $GameHeader{NumItems} ) {
+        if ( $Items[$i]{Location} == MyLoc ) {
+            if ( !$f ) {
+                print $SECOND_PERSON
+                  ? "You can also see: "
+                  : "I can also see: ";
+                $pos = 16;
+                $f++;
+            }
+            else {
+                print "\n";
+            }
+            print( $Items[$i]{Text} );
+        }
+    }
 }
