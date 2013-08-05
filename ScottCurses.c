@@ -10,7 +10,7 @@
  *
  *    You must have an ANSI C compiler to build this program.
  */
- 
+
 #include <stdio.h>
 #include <string.h>
 #ifndef PYRAMID
@@ -35,7 +35,7 @@
 /*
  *    Configuration Twiddles
  */
- 
+
 #ifdef NOSTRNCASECMP
 
 static int strncasecmp(char *a,char *b, int n)
@@ -215,7 +215,7 @@ oops:    do
                 break;
             }
         }
-        if(c==0x60) 
+        if(c==0x60)
             c='"'; /* pdd */
         tmp[ct++]=c;
     }
@@ -225,7 +225,7 @@ oops:    do
     memcpy(t,tmp,ct+1);
     return(t);
 }
-    
+
 void LoadDatabase(FILE *f, int loud)
 {
     int ni,na,nw,nr,mc,pr,tr,wl,lt,mn,trm;
@@ -235,7 +235,7 @@ void LoadDatabase(FILE *f, int loud)
     Room *rp;
     Item *ip;
 /* Load the header */
-    
+
     if(fscanf(f,"%*d %d %d %d %d %d %d %d %d %d %d %d",
         &ni,&na,&nw,&nr,&mc,&pr,&tr,&wl,&lt,&mn,&trm,&ct)<10)
         Fatal("Invalid database(bad header)");
@@ -257,7 +257,7 @@ void LoadDatabase(FILE *f, int loud)
     GameHeader.NumMessages=mn;
     Messages=(char **)MemAlloc(sizeof(char *)*(mn+1));
     GameHeader.TreasureRoom=trm;
-    
+
 /* Load the actions */
 
     ct=0;
@@ -281,7 +281,7 @@ void LoadDatabase(FILE *f, int loud)
         }
         ap++;
         ct++;
-    }            
+    }
     ct=0;
     if(loud)
         printf("Reading %d word pairs.\n",nw);
@@ -398,10 +398,10 @@ void OutBuf(char *buffer)
         }
         wprintw(Bottom,word);
         OutputPos+=strlen(word);
-        
+
         if(*buffer==0)
             return;
-        
+
         if(*buffer=='\n')
         {
             scroll(Bottom);
@@ -432,7 +432,7 @@ void OutputNumber(int a)
     sprintf(buf,"%d ",a);
     OutBuf(buf);
 }
-        
+
 void Look()
 {
     static char *ExitNames[6]=
@@ -442,7 +442,7 @@ void Look()
     Room *r;
     int ct,f;
     int pos;
-    
+
     werase(Top);
     wmove(Top,0,0);    /* Needed by some curses variants */
     if((BitFlags&(1<<DARKBIT)) && Items[LIGHT_SOURCE].Location!= CARRIED
@@ -1084,7 +1084,7 @@ doneit:                Output("The game is now over.\n");
         }
         cc++;
     }
-    return(1+continuation);        
+    return(1+continuation);
 }
 
 
@@ -1092,7 +1092,7 @@ int PerformActions(int vb,int no)
 {
     static int disable_sysfunc=0;    /* Recursion lock */
     int d=BitFlags&(1<<DARKBIT);
-    
+
     int ct=0;
     int fl;
     int doagain=0;
@@ -1185,7 +1185,7 @@ int PerformActions(int vb,int no)
                 {
                     int ct=0;
                     int f=0;
-                    
+
                     if(d)
                     {
                         Output("It is dark.\n");
@@ -1295,12 +1295,12 @@ int PerformActions(int vb,int no)
     }
     return(fl);
 }
-    
+
 int main(int argc, char *argv[])
 {
     FILE *f;
     int vb,no;
-    
+
     while(argv[1])
     {
         if(*argv[1]!='-')
@@ -1339,7 +1339,7 @@ int main(int argc, char *argv[])
         }
         argv++;
         argc--;
-    }            
+    }
 
     if(argc!=2 && argc!=3)
     {
@@ -1355,7 +1355,7 @@ int main(int argc, char *argv[])
     signal(SIGINT,Aborted);        /* For BSD curses */
     signal(SIGQUIT,SIG_IGN);
     signal(SIGTSTP,SIG_IGN);
-    
+
     if (Options & TRS80_STYLE)
     {
         Width = 64;
