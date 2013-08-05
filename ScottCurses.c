@@ -1296,7 +1296,7 @@ int PerformActions(int vb,int no)
     return(fl);
 }
     
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     FILE *f;
     int vb,no;
@@ -1451,4 +1451,5 @@ Distributed under the GNU software license\n\n");
             }
         }
     }
+    exit(0);
 }
