@@ -281,6 +281,20 @@ void LoadDatabase(FILE *f, int loud)
         }
         ap++;
         ct++;
+
+    }
+    if(0) {
+        ap--;
+        printf("\r\nNumActions: %i", na);
+        printf("\r\nVocab: %hd", ap->Vocab);
+        printf("\r\nCondition0: %hd", ap->Condition[0]);
+        printf("\r\nCondition1: %hd", ap->Condition[1]);
+        printf("\r\nCondition2: %hd", ap->Condition[2]);
+        printf("\r\nCondition3: %hd", ap->Condition[3]);
+        printf("\r\nCondition4: %hd", ap->Condition[4]);
+        printf("\r\nAction0: %hd", ap->Action[0]);
+        printf("\r\nAction1: %hd", ap->Action[1]);
+        exit(0);
     }
     ct=0;
     if(loud)
@@ -290,6 +304,12 @@ void LoadDatabase(FILE *f, int loud)
         Verbs[ct]=ReadString(f);
         Nouns[ct]=ReadString(f);
         ct++;
+    }
+    if (0) {
+        ct--;
+        printf("\r\nLast verb: %s", Verbs[ct]);
+        printf("\r\nLast noun: %s", Nouns[ct]);
+        exit(0);
     }
     ct=0;
     rp=Rooms;
@@ -303,6 +323,11 @@ void LoadDatabase(FILE *f, int loud)
         rp->Text=ReadString(f);
         ct++;
         rp++;
+    }
+    if (0) {
+        rp--;
+        printf("\r\nLast Room: %s", rp->Text);
+        exit(0);
     }
     ct=0;
     if(loud)
@@ -332,6 +357,15 @@ void LoadDatabase(FILE *f, int loud)
         fscanf(f,"%hd",&lo);
         ip->Location=(unsigned char)lo;
         ip->InitialLoc=ip->Location;
+        if (0) {
+            printf("Count: %d\r\n", ct);
+            printf("Text: %s\r\n", ip->Text);
+            printf("AutoGet: %s\r\n", ip->AutoGet);
+            printf("Location: %d\r\n", ip->Location);
+            printf("InitialLoc: %d\r\n\n", ip->InitialLoc);
+            if (ip->AutoGet!=NULL)
+                exit(0);
+        }
         ip++;
         ct++;
     }
