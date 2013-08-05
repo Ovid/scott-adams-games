@@ -7,6 +7,10 @@ use Getopt::Long;
 use autodie ':all';
 use Carp 'croak';
 use Storable 'dclone';
+
+use Data::Dumper::Simple;
+local $Data::Dumper::Indent   = 1;
+local $Data::Dumper::Sortkeys = 1;
  
 use constant LIGHT_SOURCE => 9;   # /* Always 9 how odd */
 use constant CARRIED      => 255; # /* Carried */
@@ -48,15 +52,6 @@ my @Actions;
 #
 #typedef struct
 #{
-#    char *Text;
-#    /* PORTABILITY WARNING: THESE TWO MUST BE 8 BIT VALUES. */
-#    unsigned char Location;
-#    unsigned char InitialLoc;
-#    char *AutoGet;
-#} Item;
-#
-#typedef struct
-#{
 #    short Version;
 #    short AdventureNumber;
 #    short Unknown;
@@ -69,8 +64,7 @@ my @Actions;
 #sub getpid {$$}
 #
 #Tail GameTail;
-#Item *Items;
-#Room *Rooms;
+my @Items;
 my @Rooms;
 my @Verbs;
 my @Nouns;
@@ -1062,18 +1056,35 @@ sub ReadString {
     return $word;
 }
 
+sub ReadItem {
+    my $fh = shift;
+    chomp( my $line = <$fh> );
+
+    my ( $item, $location, $autoget );
+
+    ( $item, $location ) = ( $line =~ /^"(.*)"\s+([0-9]+)\s*$/ );
+    unless ( defined $item and defined $location ) {
+        croak("Bad item read at data file line $.: $line");
+    }
+
+    if ( $item =~ s!/([^/]+)/$!! ) {
+        $autoget = $1;
+    }
+    return $item, $location, $autoget;
+}
+
 sub LoadDatabase {
     my ( $db, $loud ) = @_;
     open my $fh, '<', $db;
 
     my @headers = qw(
-        Unknown1
-        NumItems  NumActions  NumWords     NumRooms
-        MaxCarry  PlayerRoom  Treasures    WordLength
-        LightTime NumMessages TreasureRoom
+      Unknown1
+      NumItems  NumActions  NumWords     NumRooms
+      MaxCarry  PlayerRoom  Treasures    WordLength
+      LightTime NumMessages TreasureRoom
     );
     foreach my $header (@headers) {
-        $GameHeader{$header}   = _get_int($fh);
+        $GameHeader{$header} = _get_int($fh);
     }
 
     $LightRefill = $GameHeader{LightTime};
@@ -1097,56 +1108,37 @@ sub LoadDatabase {
         push @Nouns => ReadString($fh);
     }
 
-    foreach (0 .. $GameHeader{NumRooms} ) {
+    foreach ( 0 .. $GameHeader{NumRooms} ) {
         my %room = (
             Text  => undef,
             Exits => [],
         );
-        for (1 .. 6) {
+        for ( 1 .. 6 ) {
             push @{ $room{Exits} } => _get_int($fh);
         }
         $room{Text} = ReadString($fh);
         push @Rooms => \%room;
     }
 
-    for ( 0 .. $GameHeader{NumMessages} ) {
+    for ( 0 .. $GameHeader{NumMessages} + 3 ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
     }
 
-#    if(loud)
-#        printf("Reading %d items.\n",ni);
-#    ip=Items;
-#    while(ct<ni+1)
-#    {
-#        ip->Text=ReadString(f);
-#        ip->AutoGet=strchr(ip->Text,'/');
-#        /* Some games use // to mean no auto get/drop word! */
-#        if(ip->AutoGet && strcmp(ip->AutoGet,"//") && strcmp(ip->AutoGet,"/*"))
-#        {
-#            char *t;
-#            *ip->AutoGet++=0;
-#            t=strchr(ip->AutoGet,'/');
-#            if(t!=NULL)
-#                *t=0;
-#        }
-#        fscanf(f,"%hd",&lo);
-#        ip->Location=(unsigned char)lo;
-#        ip->InitialLoc=ip->Location;
-#        ip++;
-#        ct++;
-#    }
-#    ct=0;
-#    /* Discard Comment Strings */
-#    while(ct<na+1)
-#    {
-#        free(ReadString(f));
-#        ct++;
-#    }
-#    fscanf(f,"%d",&ct);
-#    if(loud)
-#        printf("Version %d.%02d of Adventure ",
-#        ct/100,ct%100);
-#    fscanf(f,"%d",&ct);
-#    if(loud)
-#        printf("%d.\nLoad Complete.\n\n",ct);
+    for ( 0 .. $GameHeader{NumItems} ) {
+        my ( $item, $location, $autoget ) = ReadItem($fh);
+        push @Items => {
+            Text       => $item,
+            Location   => $location,
+            InitialLoc => $location,
+            AutoGet    => $autoget,
+        };
+    }
+
+    ReadString($fh) for 0 .. $GameHeader{NumActions};   # skip comment strings
+
+    my $version = _get_int($fh);
+    printf(
+        "Version %d.%02d of Adventure ",
+        $version / 100, $version % 100
+    );
 }
