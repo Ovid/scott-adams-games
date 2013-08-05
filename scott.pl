@@ -1049,6 +1049,12 @@ sub _get_int {
 sub ReadString {
     my $fh = shift;
     chomp( my $word = <$fh> );
+    if ( $word eq '"' ) {
+
+        # This handles the case where a quoted multi-line string might start
+        # with a single quote on a line by itself.
+        chomp( $word .= <$fh> );
+    }
     while ( $word !~ /"$/ ) {
         chomp( $word .= "\n" . <$fh> );
     }
@@ -1102,10 +1108,33 @@ sub LoadDatabase {
         $action{Action}[1] = _get_int($fh);
         push @Actions => \%action;
     }
+    if (0) {
+        print Dumper($GameHeader{NumActions},$Actions[-1]);
+        print <<'END';
+NumActions: 169
+Action0:    8176
+Action1:    0
+Condition0: 584
+Condition1: 600
+Condition2: 0
+Condition3: 0
+Condition4: 0
+Vocab:      166
+END
+        exit;
+    }
 
     for ( 0 .. $GameHeader{NumWords} ) {
         push @Verbs => ReadString($fh);
         push @Nouns => ReadString($fh);
+    }
+    if (0) {
+        print Dumper($Verbs[-1], $Nouns[-1]);
+        print <<'END';
+Last verb: OPE
+Last noun: YOH
+END
+        exit;
     }
 
     foreach ( 0 .. $GameHeader{NumRooms} ) {
@@ -1119,9 +1148,21 @@ sub LoadDatabase {
         $room{Text} = ReadString($fh);
         push @Rooms => \%room;
     }
+    if (0) {
+        print Dumper($Rooms[-1]);
+        print <<'END';
+large misty room with strange
+unreadable letters over all the exits.
+END
+        exit;
+    }
 
-    for ( 0 .. $GameHeader{NumMessages} + 3 ) {    # XXX what happened here?
+    for ( 0 .. $GameHeader{NumMessages} ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
+    }
+    if(0) {
+        print Dumper($GameHeader{NumMessages}, $Messages[-1],$.);
+        exit;
     }
 
     for ( 0 .. $GameHeader{NumItems} ) {
