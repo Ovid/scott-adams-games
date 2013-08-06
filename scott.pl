@@ -89,7 +89,7 @@ use constant TRS80_LINE =>
 #
 sub MyLoc { $GameHeader{PlayerRoom} }
 #
-#long BitFlags=0;    /* Might be >32 flags - I haven't seen >32 yet */
+my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #
 #void Fatal(char *x)
 #{
@@ -1187,7 +1187,20 @@ sub Look {
 
     my $r = $Rooms[MyLoc];
 
-    if ( $r->{Text} eq '*' ) {
+    if (   ( $BitFlags & ( 1 << DARKBIT ) )
+        && $Items[LIGHT_SOURCE]{Location} != CARRIED
+        && $Items[LIGHT_SOURCE]{Location} != MyLoc )
+    {
+        if ($SECOND_PERSON) {
+            say("You can't see. It is too dark!");
+        }
+        else {
+            say("I can't see. It is too dark!");
+        }
+        return;
+    }
+
+    if ( $r->{Text} eq '*' ) { # XXX ???
         print( $Rooms[ MyLoc + 1 ]->{Text} );
     }
     else {
