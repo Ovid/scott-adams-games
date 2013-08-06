@@ -590,9 +590,9 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                break;
 #            case 69:
 #                $GameHeader{LightTime}=LightRefill;
-#                if(Items[LIGHT_SOURCE].Location==MyLoc)
+#                if($Items[LIGHT_SOURCE]{Location}==MyLoc)
 #                    Redraw=1;
-#                Items[LIGHT_SOURCE].Location=CARRIED;
+#                $Items[LIGHT_SOURCE]{Location}=CARRIED;
 #                BitFlags&=~(1<<LIGHTOUTBIT);
 #                break;
 #            case 70:
@@ -719,51 +719,55 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #}
 #
 #
-#int PerformActions(int vb,int no)
-#{
-#    static int disable_sysfunc=0;    /* Recursion lock */
-#    int d=BitFlags&(1<<DARKBIT);
-#    
-#    int ct=0;
-#    int fl;
-#    int doagain=0;
-#    if(vb==1 && no == -1 )
-#    {
-#        Output("Give me a direction too.");
-#        return(0);
-#    }
-#    if(vb==1 && no>=1 && no<=6)
-#    {
-#        int nl;
-#        if(Items[LIGHT_SOURCE].Location==MyLoc ||
-#           Items[LIGHT_SOURCE].Location==CARRIED)
-#               d=0;
-#        if(d)
-#            Output("Dangerous to move in the dark! ");
-#        nl=Rooms[MyLoc].Exits[no-1];
-#        if(nl!=0)
-#        {
-#            MyLoc=nl;
-#            Look();
-#            return(0);
-#        }
-#        if(d)
-#        {
-#            if($SECOND_PERSON)
-#                Output("You fell down and broke your neck. ");
-#            else
-#                Output("I fell down and broke my neck. ");
-#            wrefresh(Bottom);
-#            sleep(5);
-#            endwin();
-#            exit(0);
-#        }
-#        if($SECOND_PERSON)
-#            Output("You can't go in that direction. ");
-#        else
-#            Output("I can't go in that direction. ");
-#        return(0);
-#    }
+sub PerformActions {
+    my ( $vb, $no ) = @_;
+
+    state $disable_sysfunc = 0; # recursion lock?
+    my $d = $BitFlags&(1<<DARKBIT);
+
+    my $ct = 0;
+    my $fl;
+    my $doagain = 0;
+    if($vb==1 && $no == -1 )
+    {
+        say("Give me a direction too.");
+        return 0;
+    }
+    if ( $vb == 1 && $no >= 1 && $no <= 6 ) {
+        my $nl;
+        if (   $Items[LIGHT_SOURCE]{Location} == MyLoc
+            || $Items[LIGHT_SOURCE]{Location} == CARRIED )
+        {
+            $d = 0;
+        }
+        if ($d) {
+            say("Dangerous to move in the dark! ");
+        }
+        $nl = $Rooms[MyLoc]{Exits}[ $no - 1 ];
+
+        if ( $nl != 0 ) {
+            $GameHeader{PlayerRoom} = $nl;
+            Look();
+            return 0;
+        }
+        if ($d) {
+            if ($SECOND_PERSON) {
+                say("You fell down and broke your neck. ");
+            }
+            else {
+                say("I fell down and broke my neck. ");
+            }
+            sleep(5);
+            exit(0);
+        }
+        if ($SECOND_PERSON) {
+            say("You can't go in that direction. ");
+        }
+        else {
+            say("I can't go in that direction. ");
+        }
+        return 0;
+    }
 #    fl= -1;
 #    while(ct<=$GameHeader{NumActions})
 #    {
@@ -804,8 +808,8 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #    if(fl!=0 && disable_sysfunc==0)
 #    {
 #        int i;
-#        if(Items[LIGHT_SOURCE].Location==MyLoc ||
-#           Items[LIGHT_SOURCE].Location==CARRIED)
+#        if($Items[LIGHT_SOURCE]{Location}==MyLoc ||
+#           $Items[LIGHT_SOURCE]{Location}==CARRIED)
 #               d=0;
 #        if(vb==10 || vb==18)
 #        {
@@ -925,7 +929,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #        }
 #    }
 #    return(fl);
-#}
+}
     
 sub main {
     
@@ -971,14 +975,13 @@ END
 #        LoadGame(argv[2]);
 
     Look();
-#    while(1)
-#    {
+    while(1) {
 #        if(Redraw!=0)
 #        {
 #            Look();
 #            Redraw=0;
 #        }
-#        PerformActions(0,0);
+        PerformActions(0,0);
 #        if(Redraw!=0)
 #        {
 #            Look();
@@ -993,14 +996,14 @@ END
 #                break;
 #        }
 #        /* Brian Howarth games seem to use -1 for forever */
-#        if(Items[LIGHT_SOURCE].Location/*==-1*/!=DESTROYED && $GameHeader{LightTime}!= -1)
+#        if($Items[LIGHT_SOURCE]{Location}/*==-1*/!=DESTROYED && $GameHeader{LightTime}!= -1)
 #        {
 #            $GameHeader{LightTime}--;
 #            if($GameHeader{LightTime}<1)
 #            {
 #                BitFlags|=(1<<LIGHTOUTBIT);
-#                if(Items[LIGHT_SOURCE].Location==CARRIED ||
-#                    Items[LIGHT_SOURCE].Location==MyLoc)
+#                if($Items[LIGHT_SOURCE]{Location}==CARRIED ||
+#                    $Items[LIGHT_SOURCE]{Location}==MyLoc)
 #                {
 #                    if($SCOTTLIGHT)
 #                        Output("Light has run out! ");
@@ -1008,12 +1011,12 @@ END
 #                        Output("Your light has run out. ");
 #                }
 #                if(Options&PREHISTORIC_LAMP)
-#                    Items[LIGHT_SOURCE].Location=DESTROYED;
+#                    $Items[LIGHT_SOURCE]{Location}=DESTROYED;
 #            }
 #            else if($GameHeader{LightTime}<25)
 #            {
-#                if(Items[LIGHT_SOURCE].Location==CARRIED ||
-#                    Items[LIGHT_SOURCE].Location==MyLoc)
+#                if($Items[LIGHT_SOURCE]{Location}==CARRIED ||
+#                    $Items[LIGHT_SOURCE]{Location}==MyLoc)
 #                {
 #
 #                    if($SCOTTLIGHT)
@@ -1030,7 +1033,7 @@ END
 #                }
 #            }
 #        }
-#    }
+    }
 }
 main();
 
