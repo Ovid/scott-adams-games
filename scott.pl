@@ -133,7 +133,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #    int n=0;
 #    while(ct<=$GameHeader{NumItems})
 #    {
-#        if(Items[ct].Location==CARRIED)
+#        if($Items[$ct]{Location}==CARRIED)
 #            n++;
 #        ct++;
 #    }
@@ -169,7 +169,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #
 #    while(ct<=$GameHeader{NumItems})
 #    {
-#        if(Items[ct].AutoGet && Items[ct].Location==loc &&
+#        if(Items[ct].AutoGet && $Items[$ct]{Location}==loc &&
 #            strncasecmp(word,tp,$GameHeader{WordLength})==0)
 #            return(n);
 #        ne++;
@@ -302,7 +302,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #    fprintf(f,"%ld %d %hd %d %d %hd\n",BitFlags, (BitFlags&(1<<DARKBIT))?1:0,
 #        MyLoc,CurrentCounter,SavedRoom,$GameHeader{LightTime});
 #    for(ct=0;ct<=$GameHeader{NumItems};ct++)
-#        fprintf(f,"%hd\n",(short)Items[ct].Location);
+#        fprintf(f,"%hd\n",(short)$Items[$ct]{Location});
 #    fclose(f);
 #    Output("Saved.\n");
 #}
@@ -331,7 +331,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #    for(ct=0;ct<=$GameHeader{NumItems};ct++)
 #    {
 #        fscanf(f,"%hd\n",&lo);
-#        Items[ct].Location=(unsigned char)lo;
+#        $Items[$ct]{Location}=(unsigned char)lo;
 #    }
 #    fclose(f);
 #}
@@ -354,16 +354,16 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                param[pptr++]=dv;
 #                break;
 #            case 1:
-#                if(Items[dv].Location!=CARRIED)
+#                if($Items[$dv]{Location}!=CARRIED)
 #                    return(0);
 #                break;
 #            case 2:
-#                if(Items[dv].Location!=MyLoc)
+#                if($Items[$dv]{Location}!=MyLoc)
 #                    return(0);
 #                break;
 #            case 3:
-#                if(Items[dv].Location!=CARRIED&&
-#                    Items[dv].Location!=MyLoc)
+#                if($Items[$dv]{Location}!=CARRIED&&
+#                    $Items[$dv]{Location}!=MyLoc)
 #                    return(0);
 #                break;
 #            case 4:
@@ -371,11 +371,11 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                    return(0);
 #                break;
 #            case 5:
-#                if(Items[dv].Location==MyLoc)
+#                if($Items[$dv]{Location}==MyLoc)
 #                    return(0);
 #                break;
 #            case 6:
-#                if(Items[dv].Location==CARRIED)
+#                if($Items[$dv]{Location}==CARRIED)
 #                    return(0);
 #                break;
 #            case 7:
@@ -399,15 +399,15 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                    return(0);
 #                break;
 #            case 12:
-#                if(Items[dv].Location==CARRIED||Items[dv].Location==MyLoc)
+#                if($Items[$dv]{Location}==CARRIED||$Items[$dv]{Location}==MyLoc)
 #                    return(0);
 #                break;
 #            case 13:
-#                if(Items[dv].Location==0)
+#                if($Items[$dv]{Location}==0)
 #                    return(0);
 #                break;
 #            case 14:
-#                if(Items[dv].Location)
+#                if($Items[$dv]{Location})
 #                    return(0);
 #                break;
 #            case 15:
@@ -419,11 +419,11 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                    return(0);
 #                break;
 #            case 17:
-#                if(Items[dv].Location!=Items[dv].InitialLoc)
+#                if($Items[$dv]{Location}!=Items[dv].InitialLoc)
 #                    return(0);
 #                break;
 #            case 18:
-#                if(Items[dv].Location==Items[dv].InitialLoc)
+#                if($Items[$dv]{Location}==Items[dv].InitialLoc)
 #                    return(0);
 #                break;
 #            case 19:/* Only seen in Brian Howarth games so far */
@@ -514,7 +514,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #            {
 #                /* Bug fix for some systems - before it could get parameters wrong */
 #                int i=param[pptr++];
-#                Items[i].Location=param[pptr++];
+#                $Items[$i]{Location}=param[pptr++];
 #                Redraw=1;
 #                break;
 #            }
@@ -533,7 +533,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                int n=0;
 #                while(ct<=$GameHeader{NumItems})
 #                {
-#                    if(Items[ct].Location==$GameHeader{TreasureRoom} &&
+#                    if($Items[$ct]{Location}==$GameHeader{TreasureRoom} &&
 #                      *Items[ct].Text=='*')
 #                          n++;
 #                    ct++;
@@ -563,7 +563,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                    Output("I'm carrying:\n");
 #                while(ct<=$GameHeader{NumItems})
 #                {
-#                    if(Items[ct].Location==CARRIED)
+#                    if($Items[$ct]{Location}==CARRIED)
 #                    {
 #                        if(f==1)
 #                        {
@@ -606,11 +606,11 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #            {
 #                int i1=param[pptr++];
 #                int i2=param[pptr++];
-#                int t=Items[i1].Location;
-#                if(t==MyLoc || Items[i2].Location==MyLoc)
+#                int t=$Items[$i1]{Location};
+#                if(t==MyLoc || $Items[$i2]{Location}==MyLoc)
 #                    Redraw=1;
-#                Items[i1].Location=Items[i2].Location;
-#                Items[i2].Location=t;
+#                $Items[$i1]{Location}=$Items[$i2]{Location};
+#                $Items[$i2]{Location}=t;
 #                break;
 #            }
 #            case 73:
@@ -626,10 +626,10 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                int i1,i2;
 #                i1=param[pptr++];
 #                i2=param[pptr++];
-#                if(Items[i1].Location==MyLoc)
+#                if($Items[$i1]{Location}==MyLoc)
 #                    Redraw=1;
-#                Items[i1].Location=Items[i2].Location;
-#                if(Items[i2].Location==MyLoc)
+#                $Items[$i1]{Location}=$Items[$i2]{Location};
+#                if($Items[$i2]{Location}==MyLoc)
 #                    Redraw=1;
 #                break;
 #            }
@@ -828,7 +828,7 @@ sub PerformActions {
 #                    }
 #                    while(ct<=$GameHeader{NumItems})
 #                    {
-#                        if(Items[ct].Location==MyLoc && Items[ct].AutoGet!=NULL && Items[ct].AutoGet[0]!='*')
+#                        if($Items[$ct]{Location}==MyLoc && Items[ct].AutoGet!=NULL && Items[ct].AutoGet[0]!='*')
 #                        {
 #                            no=WhichWord(Items[ct].AutoGet,Nouns);
 #                            disable_sysfunc=1;    /* Don't recurse into auto get ! */
@@ -842,7 +842,7 @@ sub PerformActions {
 #                                    Output("I've too much to carry. ");
 #                                return(0);
 #                            }
-#                             Items[ct].Location= CARRIED;
+#                             $Items[$ct]{Location}= CARRIED;
 #                             Redraw=1;
 #                             OutBuf(Items[ct].Text);
 #                             Output(": O.K.\n");
@@ -876,7 +876,7 @@ sub PerformActions {
 #                        Output("It's beyond my power to do that. ");
 #                    return(0);
 #                }
-#                Items[i].Location= CARRIED;
+#                $Items[$i]{Location}= CARRIED;
 #                Output("O.K. ");
 #                Redraw=1;
 #                return(0);
@@ -889,13 +889,13 @@ sub PerformActions {
 #                    int f=0;
 #                    while(ct<=$GameHeader{NumItems})
 #                    {
-#                        if(Items[ct].Location==CARRIED && Items[ct].AutoGet && Items[ct].AutoGet[0]!='*')
+#                        if($Items[$ct]{Location}==CARRIED && Items[ct].AutoGet && Items[ct].AutoGet[0]!='*')
 #                        {
 #                            no=WhichWord(Items[ct].AutoGet,Nouns);
 #                            disable_sysfunc=1;
 #                            PerformActions(vb,no);
 #                            disable_sysfunc=0;
-#                            Items[ct].Location=MyLoc;
+#                            $Items[$ct]{Location}=MyLoc;
 #                            OutBuf(Items[ct].Text);
 #                            Output(": O.K.\n");
 #                            Redraw=1;
@@ -921,7 +921,7 @@ sub PerformActions {
 #                        Output("It's beyond my power to do that.\n");
 #                    return(0);
 #                }
-#                Items[i].Location=MyLoc;
+#                $Items[$i]{Location}=MyLoc;
 #                Output("O.K. ");
 #                Redraw=1;
 #                return(0);
