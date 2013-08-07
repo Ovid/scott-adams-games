@@ -1,12 +1,13 @@
 #!/usr/bin/env perl
 
 use strict;
-use warnings;
+use warnings 'FATAL' => 'all';
 use 5.010;
 use Getopt::Long;
 use autodie ':all';
 use Carp 'croak';
 use Storable 'dclone';
+$|++;
 
 use Data::Dumper::Simple;
 local $Data::Dumper::Indent   = 1;
@@ -117,7 +118,14 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #        Fatal("Out of memory");
 #    return(t);
 #}
-#
+
+
+sub RandomPercent {
+    my $n = shift;
+    my $rv = rand() << 6;
+    $rv %= 100;
+    return $rv < $n;
+}
 #int RandomPercent(int n)
 #{
 #    unsigned int rv=rand()<<6;
@@ -169,7 +177,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #
 #    while(ct<=$GameHeader{NumItems})
 #    {
-#        if(Items[ct].AutoGet && $Items[$ct]{Location}==loc &&
+#        if($Items[$ct]{AutoGet} && $Items[$ct]{Location}==loc &&
 #            strncasecmp(word,tp,$GameHeader{WordLength})==0)
 #            return(n);
 #        ne++;
@@ -336,6 +344,9 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #    fclose(f);
 #}
 #
+sub PerformLine {
+    say "PerformLine";
+}
 #int PerformLine(int ct)
 #{
 #    int continuation=0;
@@ -345,7 +356,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #    while(cc<5)
 #    {
 #        int cv,dv;
-#        cv=Actions[ct].Condition[cc];
+#        cv=$Actions[$ct]{Condition}[cc];
 #        dv=cv/20;
 #        cv%=20;
 #        switch(cv)
@@ -419,11 +430,11 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                    return(0);
 #                break;
 #            case 17:
-#                if($Items[$dv]{Location}!=Items[dv].InitialLoc)
+#                if($Items[$dv]{Location}!=$Items[$dv]{InitialLoc})
 #                    return(0);
 #                break;
 #            case 18:
-#                if($Items[$dv]{Location}==Items[dv].InitialLoc)
+#                if($Items[$dv]{Location}==$Items[$dv]{InitialLoc})
 #                    return(0);
 #                break;
 #            case 19:/* Only seen in Brian Howarth games so far */
@@ -434,8 +445,8 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #        cc++;
 #    }
 #    /* Actions */
-#    act[0]=Actions[ct].Action[0];
-#    act[2]=Actions[ct].Action[1];
+#    act[0]=$Actions[$ct]{Action}[0];
+#    act[2]=$Actions[$ct]{Action}[1];
 #    act[1]=act[0]%150;
 #    act[3]=act[2]%150;
 #    act[0]/=150;
@@ -534,7 +545,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                while(ct<=$GameHeader{NumItems})
 #                {
 #                    if($Items[$ct]{Location}==$GameHeader{TreasureRoom} &&
-#                      *Items[ct].Text=='*')
+#                      *$Items[$ct]{Text}=='*')
 #                          n++;
 #                    ct++;
 #                }
@@ -573,7 +584,7 @@ my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 #                                Output(" - ");
 #                        }
 #                        f=1;
-#                        Output(Items[ct].Text);
+#                        Output($Items[$ct]{Text});
 #                    }
 #                    ct++;
 #                }
@@ -725,9 +736,6 @@ sub PerformActions {
     state $disable_sysfunc = 0; # recursion lock?
     my $d = $BitFlags&(1<<DARKBIT);
 
-    my $ct = 0;
-    my $fl;
-    my $doagain = 0;
     if($vb==1 && $no == -1 )
     {
         say("Give me a direction too.");
@@ -768,43 +776,50 @@ sub PerformActions {
         }
         return 0;
     }
-#    fl= -1;
-#    while(ct<=$GameHeader{NumActions})
-#    {
-#        int vv,nv;
-#        vv=Actions[ct].Vocab;
-#        /* Think this is now right. If a line we run has an action73
-#           run all following lines with vocab of 0,0 */
-#        if(vb!=0 && (doagain&&vv!=0))
-#            break;
-#        /* Oops.. added this minor cockup fix 1.11 */
-#        if(vb!=0 && !doagain && fl== 0)
-#            break;
-#        nv=vv%150;
-#        vv/=150;
-#        if((vv==vb)||(doagain&&Actions[ct].Vocab==0))
-#        {
-#            if((vv==0 && RandomPercent(nv))||doagain||
-#                (vv!=0 && (nv==no||nv==0)))
-#            {
-#                int f2;
-#                if(fl== -1)
-#                    fl= -2;
-#                if((f2=PerformLine(ct))>0)
-#                {
-#                    /* ahah finally figured it out ! */
-#                    fl=0;
-#                    if(f2==2)
-#                        doagain=1;
-#                    if(vb!=0 && doagain==0)
-#                        return;
-#                }
-#            }
-#        }
-#        ct++;
-#        if(Actions[ct].Vocab!=0)
-#            doagain=0;
-#    }
+    my $ct = 0;
+    my $fl = -1;
+    my $doagain = 0;
+    #ACTIONS: while ( $ct <= $GameHeader{NumActions} ) {
+    ACTIONS: foreach my $ct (0..$GameHeader{NumActions}) {
+        my ( $vv, $nv );
+        $vv = $Actions[$ct]{Vocab};
+
+        #/* Think this is now right. If a line we run has an action73
+        #   run all following lines with vocab of 0,0 */
+        if ( $vb != 0 && ( $doagain && $vv != 0 ) ) {
+            last ACTIONS;
+        }
+
+        #/* Oops.. added this minor cockup fix 1.11 */
+        if ( $vb != 0 && !$doagain && $fl == 0 ) {
+            last ACTIONS;
+        }
+        $nv = $vv % 150;
+        $vv /= 150;
+        if ( ( $vv == $vb ) || ( $doagain && $Actions[$ct]{Vocab} == 0 ) ) {
+            if (   ( $vv == 0 && RandomPercent($nv) )
+                || $doagain
+                || ( $vv != 0 && ( $nv == $no || $nv == 0 ) ) )
+            {
+                my $f2;
+                if ( $fl == -1 ) { $fl = -2 }
+                if ( ( $f2 = PerformLine($ct) ) > 0 ) {
+
+                    #/* ahah finally figured it out ! */
+                    $fl = 0;
+                    if ( $f2 == 2 ) {
+                        $doagain = 1;
+                    }
+                    if ( $vb != 0 && $doagain == 0 ) {
+                        return;
+                    }
+                }
+            }
+        }
+        if ( $Actions[$ct]{Vocab} != 0 ) {
+            $doagain = 0;
+        }
+    }
 #    if(fl!=0 && disable_sysfunc==0)
 #    {
 #        int i;
@@ -828,9 +843,9 @@ sub PerformActions {
 #                    }
 #                    while(ct<=$GameHeader{NumItems})
 #                    {
-#                        if($Items[$ct]{Location}==MyLoc && Items[ct].AutoGet!=NULL && Items[ct].AutoGet[0]!='*')
+#                        if($Items[$ct]{Location}==MyLoc && $Items[$ct]{AutoGet}!=NULL && $Items[$ct]{AutoGet}[0]!='*')
 #                        {
-#                            no=WhichWord(Items[ct].AutoGet,Nouns);
+#                            no=WhichWord($Items[$ct]{AutoGet},Nouns);
 #                            disable_sysfunc=1;    /* Don't recurse into auto get ! */
 #                            PerformActions(vb,no);    /* Recursively check each items table code */
 #                            disable_sysfunc=0;
@@ -844,7 +859,7 @@ sub PerformActions {
 #                            }
 #                             $Items[$ct]{Location}= CARRIED;
 #                             Redraw=1;
-#                             OutBuf(Items[ct].Text);
+#                             OutBuf($Items[$ct]{Text});
 #                             Output(": O.K.\n");
 #                             f=1;
 #                         }
@@ -889,14 +904,14 @@ sub PerformActions {
 #                    int f=0;
 #                    while(ct<=$GameHeader{NumItems})
 #                    {
-#                        if($Items[$ct]{Location}==CARRIED && Items[ct].AutoGet && Items[ct].AutoGet[0]!='*')
+#                        if($Items[$ct]{Location}==CARRIED && $Items[$ct]{AutoGet} && $Items[$ct]{AutoGet}[0]!='*')
 #                        {
-#                            no=WhichWord(Items[ct].AutoGet,Nouns);
+#                            no=WhichWord($Items[$ct]{AutoGet},Nouns);
 #                            disable_sysfunc=1;
 #                            PerformActions(vb,no);
 #                            disable_sysfunc=0;
 #                            $Items[$ct]{Location}=MyLoc;
-#                            OutBuf(Items[ct].Text);
+#                            OutBuf($Items[$ct]{Text});
 #                            Output(": O.K.\n");
 #                            Redraw=1;
 #                            f=1;
