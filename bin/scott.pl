@@ -971,6 +971,7 @@ END
 #            Redraw=0;
 #        }
         my ( $verb, $noun ) = GetInput();
+		say '-' x 80;
         given ( PerformActions( $verb, $noun ) ) {
             when (-1) { say("I don't understand your command. ") }
             when (-2) { say("I can't do that yet. ") }
@@ -1231,7 +1232,7 @@ sub Look {
             else {
                 $look .= "\n";
             }
-            $look .= $Items[$i]{Text} ."\n";
+            $look .= "  - ".$Items[$i]{Text};
         }
     }
 	return $look;
