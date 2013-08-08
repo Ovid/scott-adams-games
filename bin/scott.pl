@@ -32,7 +32,7 @@ our @Nouns;
 our @Messages;
 #Action *Actions;
 our $LightRefill;
-#char NounText[16];
+our $NounText;
 #int Counters[16];    /* Range unknown */
 #int CurrentCounter;
 #int SavedRoom;
@@ -212,61 +212,52 @@ sub RandomPercent {
 #    }
 #}
 #
-#void GetInput(vb,no)
-#int *vb,*no;
-#{
-#    char buf[256];
-#    char verb[10],noun[10];
-#    int vc,nc;
-#    int num;
-#    do
-#    {
-#        do
-#        {
-#            Output("\nTell me what to do ? ");
-#            wrefresh(Bottom);
-#            LineInput(buf);
-#            OutReset();
-#            num=sscanf(buf,"%9s %9s",verb,noun);
-#        }
-#        while(num==0||*buf=='\n');
-#        if(num==1)
-#            *noun=0;
-#        if(*noun==0 && strlen(verb)==1)
-#        {
-#            switch(isupper(*verb)?tolower(*verb):*verb)
-#            {
-#                case 'n':strcpy(verb,"NORTH");break;
-#                case 'e':strcpy(verb,"EAST");break;
-#                case 's':strcpy(verb,"SOUTH");break;
-#                case 'w':strcpy(verb,"WEST");break;
-#                case 'u':strcpy(verb,"UP");break;
-#                case 'd':strcpy(verb,"DOWN");break;
-#                /* Brian Howarth interpreter also supports this */
-#                case 'i':strcpy(verb,"INVENTORY");break;
-#            }
-#        }
-#        nc=WhichWord(verb,Nouns);
-#        /* The Scott Adams system has a hack to avoid typing 'go' */
-#        if(nc>=1 && nc <=6)
-#        {
-#            vc=1;
-#        }
-#        else
-#        {
-#            vc=WhichWord(verb,Verbs);
-#            nc=WhichWord(noun,Nouns);
-#        }
-#        *vb=vc;
-#        *no=nc;
-#        if(vc==-1)
-#        {
-#            Output("You use word(s) I don't know! ");
-#        }
-#    }
-#    while(vc==-1);
-#    strcpy(NounText,noun);    /* Needed by GET/DROP hack */
-#}
+sub GetInput {
+	GetInput:  while (1) {
+		print "Tell me what to do ? ";
+		chomp( my $input = <STDIN> );
+
+		my @words = split ' ' => $input, 2;
+		if ( @words > 2 ) {
+			say "I'm stupid. Try one or two words.";
+			next GetInput;
+		}
+		unless(@words) {
+			say "Huh?";
+			next GetInput;
+		}
+		my ( $verb, $noun ) = @words;
+		if ( !defined $noun && 1 == length($verb) ) {
+			given ($verb) {
+				when ('n') { $verb = 'NORTH' }
+				when ('s') { $verb = 'SOUTH' }
+				when ('e') { $verb = 'EAST' }
+				when ('w') { $verb = 'WEST' }
+				when ('d') { $verb = 'DOWN' }
+				when ('u') { $verb = 'UP' }
+                # Brian Howarth interpreter also supports this
+                when ('i') { $verb = 'INVENTORY' }
+			}
+		}
+        my $nc = WhichWord( $verb, \@Nouns );
+		my $vc;
+        # The Scott Adams system has a hack to avoid typing 'go' */
+        if(defined $nc && $nc>=1 && $nc <=6) {
+            $vc=1;
+        }
+        else {
+            $vc=WhichWord($verb,\@Verbs);
+            $nc=WhichWord($noun,\@Nouns);
+        }
+		$NounText = $noun; # Needed by GET/DROP hack
+        if(!defined $vc) {
+            say("You use word(s) I don't know! ");
+        }
+		else {
+			return ( $vc, $nc );
+		}
+	}
+}
 #
 #void SaveGame()
 #{
@@ -715,8 +706,7 @@ sub PerformActions {
     state $disable_sysfunc = 0; # recursion lock?
     my $d = $BitFlags&(1<<DARKBIT);
 
-    if($vb==1 && $no == -1 )
-    {
+    if($vb==1 && !defined $no) {
         say("Give me a direction too.");
         return 0;
     }
@@ -758,7 +748,6 @@ sub PerformActions {
     my $ct = 0;
     my $fl = -1;
     my $doagain = 0;
-    #ACTIONS: while ( $ct <= $GameHeader{NumActions} ) {
     ACTIONS: foreach my $ct (0..$GameHeader{NumActions}) {
         my ( $vv, $nv );
         $vv = $Actions[$ct]{Vocab};
@@ -981,14 +970,11 @@ END
 #            say Look();
 #            Redraw=0;
 #        }
-#        GetInput(&vb,&no);
-#        switch(PerformActions(vb,no))
-#        {
-#            case -1:Output("I don't understand your command. ");
-#                break;
-#            case -2:Output("I can't do that yet. ");
-#                break;
-#        }
+        my ( $verb, $noun ) = GetInput();
+        given ( PerformActions( $verb, $noun ) ) {
+            when (-1) { say("I don't understand your command. ") }
+            when (-2) { say("I can't do that yet. ") }
+        }
 #        /* Brian Howarth games seem to use -1 for forever */
 #        if($Items[LIGHT_SOURCE]{Location}/*==-1*/!=DESTROYED && $GameHeader{LightTime}!= -1)
 #        {
