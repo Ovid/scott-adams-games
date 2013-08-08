@@ -97,6 +97,23 @@ sub MapSynonym {
     }
     return;
 }
+
+sub MatchUpItem {
+    my ( $text, $loc ) = @_;
+    my $word = MapSynonym($text) // $text;
+
+    for my $i ( 0 .. $GameHeader{NumItems} ) {
+        my $item = $Items[$i];
+        if (   $item->{AutoGet}
+            && $item->{Location} == $loc
+            && strncasecmp( $item->{AutoGet}, $word, $GameHeader{WordLength} ) )
+        {
+            return $i;
+        }
+    }
+    return -1;
+}
+
 #
 use constant TRS80_LINE =>
   "\n<------------------------------------------------------------>\n";
