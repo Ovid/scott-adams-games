@@ -20,10 +20,10 @@ use constant DARKBIT      => 1;   #
 use constant LIGHTOUTBIT  => 16;  # /* Light gone out */
 
 our $SECOND_PERSON    = 1;    # "you are" instead of "I am";
-our $SCOTTLIGHT       = 0;    #	/* Authentic Scott Adams light messages */
-our $DEBUGGING        = 0;    #	/* Info from database load */
-our $TRS80_STYLE      = 0;    #	/* Display in style used on TRS-80 */
-our $PREHISTORIC_LAMP = 1;    #	/* Destroy the lamp (very old databases) */
+our $SCOTTLIGHT       = 0;    #    /* Authentic Scott Adams light messages */
+our $DEBUGGING        = 0;    #    /* Info from database load */
+our $TRS80_STYLE      = 0;    #    /* Display in style used on TRS-80 */
+our $PREHISTORIC_LAMP = 1;    #    /* Destroy the lamp (very old databases) */
  
 our @Items;
 our @Rooms;
@@ -99,9 +99,9 @@ sub MapSynonym {
 }
 
 sub WhichWord {
-	my ( $word, $list ) = @_;
-	my $lastword;
-	foreach my $index ( 0 .. $GameHeader{NumWords} ) {
+    my ( $word, $list ) = @_;
+    my $lastword;
+    foreach my $index ( 0 .. $GameHeader{NumWords} ) {
         my $curr_word = $list->[$index];
         unless ( $curr_word =~ s/^\*// ) {
             $lastword = $index;
@@ -213,34 +213,34 @@ sub RandomPercent {
 #}
 #
 sub GetInput {
-	GetInput:  while (1) {
-		print "Tell me what to do ? ";
-		chomp( my $input = <STDIN> );
+    GetInput:  while (1) {
+        print "Tell me what to do ? ";
+        chomp( my $input = <STDIN> );
 
-		my @words = split ' ' => $input, 2;
-		if ( @words > 2 ) {
-			say "I'm stupid. Try one or two words.";
-			next GetInput;
-		}
-		unless(@words) {
-			say "Huh?";
-			next GetInput;
-		}
-		my ( $verb, $noun ) = @words;
-		if ( !defined $noun && 1 == length($verb) ) {
-			given ($verb) {
-				when ('n') { $verb = 'NORTH' }
-				when ('s') { $verb = 'SOUTH' }
-				when ('e') { $verb = 'EAST' }
-				when ('w') { $verb = 'WEST' }
-				when ('d') { $verb = 'DOWN' }
-				when ('u') { $verb = 'UP' }
+        my @words = split ' ' => $input, 2;
+        if ( @words > 2 ) {
+            say "I'm stupid. Try one or two words.";
+            next GetInput;
+        }
+        unless(@words) {
+            say "Huh?";
+            next GetInput;
+        }
+        my ( $verb, $noun ) = @words;
+        if ( !defined $noun && 1 == length($verb) ) {
+            given ($verb) {
+                when ('n') { $verb = 'NORTH' }
+                when ('s') { $verb = 'SOUTH' }
+                when ('e') { $verb = 'EAST' }
+                when ('w') { $verb = 'WEST' }
+                when ('d') { $verb = 'DOWN' }
+                when ('u') { $verb = 'UP' }
                 # Brian Howarth interpreter also supports this
                 when ('i') { $verb = 'INVENTORY' }
-			}
-		}
+            }
+        }
         my $nc = WhichWord( $verb, \@Nouns );
-		my $vc;
+        my $vc;
         # The Scott Adams system has a hack to avoid typing 'go' */
         if(defined $nc && $nc>=1 && $nc <=6) {
             $vc=1;
@@ -249,14 +249,14 @@ sub GetInput {
             $vc=WhichWord($verb,\@Verbs);
             $nc=WhichWord($noun,\@Nouns);
         }
-		$NounText = $noun; # Needed by GET/DROP hack
+        $NounText = $noun; # Needed by GET/DROP hack
         if(!defined $vc) {
             say("You use word(s) I don't know! ");
         }
-		else {
-			return ( $vc, $nc );
-		}
-	}
+        else {
+            return ( $vc, $nc );
+        }
+    }
 }
 #
 #void SaveGame()
@@ -971,7 +971,7 @@ END
 #            Redraw=0;
 #        }
         my ( $verb, $noun ) = GetInput();
-		say '-' x 80;
+        say '-' x 80;
         given ( PerformActions( $verb, $noun ) ) {
             when (-1) { say("I don't understand your command. ") }
             when (-2) { say("I can't do that yet. ") }
@@ -1169,7 +1169,7 @@ END
 sub Look {
     my @ExitNames = qw(North South East West Up Down);
 
-	my $look = '';
+    my $look = '';
     my $r = $Rooms[MyLoc];
 
     if (   ( $BitFlags & ( 1 << DARKBIT ) )
@@ -1235,5 +1235,5 @@ sub Look {
             $look .= "  - ".$Items[$i]{Text};
         }
     }
-	return $look;
+    return $look;
 }
