@@ -101,10 +101,10 @@ sub MapSynonym {
 sub WhichWord {
 	my ( $word, $list ) = @_;
 	my $lastword;
-	foreach my $i ( 0 .. $GameHeader{NumWords} ) {
-        my $curr_word = $list->[$i];
+	foreach my $index ( 0 .. $GameHeader{NumWords} ) {
+        my $curr_word = $list->[$index];
         unless ( $curr_word =~ s/^\*// ) {
-            $lastword = $curr_word;
+            $lastword = $index;
         }
         if ( strncasecmp( $curr_word, $word, $GameHeader{WordLength} ) ) {
             return $lastword;

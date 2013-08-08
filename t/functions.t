@@ -14,16 +14,17 @@ ok !::strncasecmp('HIT', 'KIl', 3),
 is ::MapSynonym('ax'), 'AXE', '"ax" should be a synonym for "AXE"';
 is ::MapSynonym('axE'), 'AXE', '"axE" should be a synonym for "AXE"';
 is ::MapSynonym('MIR'), 'MIR', '"MIR" should be a synonym for "MIR"';
+is ::MapSynonym('mirror'), 'MIR', '"mirror" should be a synonym for "MIR"';
 ok !defined ::MapSynonym('XXX'), '"XXX" should not be a synonym for anything';
 
-is ::WhichWord( 'ax',  \@::Nouns ), 'AXE', '"ax" should be a synonym for "AXE"';
-is ::WhichWord( 'axE', \@::Nouns ), 'AXE', '"axE" should be a synonym for "AXE"';
-is ::WhichWord( 'MIR', \@::Nouns ), 'MIR', '"MIR" should be a synonym for "MIR"';
+is ::WhichWord( 'ax',  \@::Nouns ), 11, 'WhichWord("ax", Nouns) should return its id';
+is ::WhichWord( 'axE', \@::Nouns ), 11, 'WhichWord("axE", Nouns) should return the same id';
+is ::WhichWord( 'MIR', \@::Nouns ), 10, '"MIR" should return its id';
 ok !defined ::WhichWord( 'XXX', \@::Nouns ), '"XXX" should not be a synonym for anything';
 
-is ::WhichWord( 'at',  \@::Verbs ), 'AT', '"at" should be a synonym for "AT"';
-is ::WhichWord( 'cUt', \@::Verbs ), 'CHO', '"cUt" should be a synonym for "CHO"';
-is ::WhichWord( 'CHO', \@::Verbs ), 'CHO', '"CHO" should be a synonym for "CHO"';
+is ::WhichWord( 'at',  \@::Verbs ), 7, '"at" should be a synonym for "AT"';
+is ::WhichWord( 'cUt', \@::Verbs ), 8, '"cUt" should be a synonym for "CHO"';
+is ::WhichWord( 'CHO', \@::Verbs ), 8, '"CHO" should be a synonym for "CHO"';
 ok !defined ::WhichWord( 'XXX', \@::Verbs ), '"XXX" should not be a synonym for anything';
 
 is ::MatchUpItem('ax', 2), -1,
