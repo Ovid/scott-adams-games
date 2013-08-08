@@ -98,6 +98,21 @@ sub MapSynonym {
     return;
 }
 
+sub WhichWord {
+	my ( $word, $list ) = @_;
+	my $lastword;
+	foreach my $i ( 0 .. $GameHeader{NumWords} ) {
+        my $curr_word = $list->[$i];
+        unless ( $curr_word =~ s/^\*// ) {
+            $lastword = $curr_word;
+        }
+        if ( strncasecmp( $curr_word, $word, $GameHeader{WordLength} ) ) {
+            return $lastword;
+        }
+    }
+    return;
+}
+
 sub MatchUpItem {
     my ( $text, $loc ) = @_;
     my $word = MapSynonym($text) // $text;
@@ -121,33 +136,6 @@ use constant TRS80_LINE =>
 sub MyLoc { $GameHeader{PlayerRoom} }
 #
 my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
-#
-#void Fatal(char *x)
-#{
-#    if(DisplayUp)
-#        endwin();
-#    fprintf(stderr,"%s.\n",x);
-#    exit(1);
-#}
-#
-#void Aborted()
-#{
-#    Fatal("User exit");
-#}
-#
-#void ClearScreen(void)
-#{
-#    werase(Bottom);
-#    wrefresh(Bottom);
-#}
-#
-#void *MemAlloc(int size)
-#{
-#    void *t=(void *)malloc(size);
-#    if(t==NULL)
-#        Fatal("Out of memory");
-#    return(t);
-#}
 
 
 sub RandomPercent {
@@ -177,45 +165,6 @@ sub RandomPercent {
 #    }
 #    return(n);
 #}
-#
-#char *MapSynonym(char *word)
-#{
-#    int n=1;
-#    char *tp;
-#    static char lastword[16];    /* Last non synonym */
-#    while(n<=$GameHeader{NumWords})
-#    {
-#        tp=Nouns[n];
-#        if(*tp=='*')
-#            tp++;
-#        else
-#            strcpy(lastword,tp);
-#        if(strncasecmp(word,tp,$GameHeader{WordLength})==0)
-#            return(lastword);
-#        n++;
-#    }
-#    return(NULL);
-#}
-#
-#int MatchUpItem(char *text, int loc)
-#{
-#    char *word=MapSynonym(text);
-#    int ct=0;
-#
-#    if(word==NULL)
-#        word=text;
-#
-#    while(ct<=$GameHeader{NumItems})
-#    {
-#        if($Items[$ct]{AutoGet} && $Items[$ct]{Location}==loc &&
-#            strncasecmp(word,tp,$GameHeader{WordLength})==0)
-#            return(n);
-#        ne++;
-#    }
-#    return(-1);
-#}
-#
-#
 #
 #void LineInput(char *buf)
 #{
