@@ -6,45 +6,87 @@ use 5.010;
 use Getopt::Long;
 use autodie ':all';
 use Carp 'croak';
+use Carp::Always;
 use Storable 'dclone';
 $|++;
 
 use Data::Dumper::Simple;
 local $Data::Dumper::Indent   = 1;
 local $Data::Dumper::Sortkeys = 1;
- 
-use constant LIGHT_SOURCE => 9;   # /* Always 9 how odd */
-use constant CARRIED      => 255; # /* Carried */
-use constant DESTROYED    => 0;   # /* Destroyed */
-use constant DARKBIT      => 1;   #
-use constant LIGHTOUTBIT  => 16;  # /* Light gone out */
 
-our $SECOND_PERSON    = 1;    # "you are" instead of "I am";
-our $SCOTTLIGHT       = 0;    #    /* Authentic Scott Adams light messages */
-our $DEBUGGING        = 0;    #    /* Info from database load */
-our $TRS80_STYLE      = 0;    #    /* Display in style used on TRS-80 */
-our $PREHISTORIC_LAMP = 1;    #    /* Destroy the lamp (very old databases) */
- 
+# verbs
+use constant AUT       => 0;
+use constant GO        => 1;
+use constant JUMP      => 6;
+use constant AT        => 7;
+use constant CHO       => 8;
+use constant GET       => 10;
+use constant LIG       => 14;
+use constant DROP      => 18;
+use constant THR       => 24;
+use constant QUI       => 26;
+use constant SWI       => 27;
+use constant RUB       => 28;
+use constant LOO       => 29;
+use constant STO       => 32;
+use constant SCO       => 33;
+use constant INVENTORY => 34;
+use constant SAV       => 35;
+use constant WAK       => 36;
+use constant UNL       => 37;
+use constant REA       => 38;
+use constant ATT       => 39;
+use constant DRI       => 42;
+use constant FIN       => 45;
+use constant HEL       => 47;
+use constant SAY       => 48;
+use constant SCR       => 51;
+use constant FIL       => 55;
+use constant CRO       => 56;
+use constant DAM       => 57;
+use constant MAK       => 58;
+use constant WAV       => 60;
+use constant OPE       => 69;
+
+# nouns
+
+
+# misc
+use constant LIGHT_SOURCE => 9;      # #  Always 9 how odd
+use constant CARRIED      => 255;    # #  Carried
+use constant DESTROYED    => 0;      # #  Destroyed
+use constant DARKBIT      => 1;      #
+use constant LIGHTOUTBIT  => 16;     # #  Light gone out
+
+our $SECOND_PERSON    = 1;           # "you are" instead of "I am";
+our $SCOTTLIGHT       = 0;           #    #  Authentic Scott Adams light messages
+our $DEBUGGING        = 0;           #    #  Info from database load
+our $TRS80_STYLE      = 0;           #    #  Display in style used on TRS-80
+our $PREHISTORIC_LAMP = 1;           #    #  Destroy the lamp (very old databases)
+
 our @Items;
 our @Rooms;
 our @Verbs;
 our @Nouns;
 our @Messages;
+
 #Action *Actions;
 our $LightRefill;
 our $NounText;
-#int Counters[16];    /* Range unknown */
+
+#int Counters[16];    #  Range unknown
 #int CurrentCounter;
 #int SavedRoom;
-#int RoomSaved[16];    /* Range unknown */
-#int DisplayUp;        /* Curses up */
+#int RoomSaved[16];    #  Range unknown
+#int DisplayUp;        #  Curses up
 #WINDOW *Top,*Bottom;
-#int Redraw;        /* Update item window */
-our $Options = 0;   #     /* Option flags set */
-our $Width; #       /* Terminal width */
-our $TopHeight; #       /* Height of top window */
-our $BottomHeight; #   /* Height of bottom window */
-#     NumWords        /* Smaller of verb/noun is padded to same size */
+#int Redraw;        #  Update item window
+our $Options = 0;     #     #  Option flags set
+our $Width;           #       #  Terminal width
+our $TopHeight;       #       #  Height of top window
+our $BottomHeight;    #   #  Height of bottom window
+
+#     NumWords        #  Smaller of verb/noun is padded to same size
 our %GameHeader = map { $_ => 0 } qw(
   Unknown1
   NumItems
@@ -79,7 +121,7 @@ our @Actions;
 #
 sub strncasecmp {
     my ( $word1, $word2, $length ) = @_;
-    return lc(substr $word1, 0, $length) eq lc(substr $word2, 0, $length);
+    return lc( substr $word1, 0, $length ) eq lc( substr $word2, 0, $length );
 }
 
 sub MapSynonym {
@@ -126,24 +168,25 @@ sub MatchUpItem {
             return $i;
         }
     }
-    return -1;
+    return;
 }
 
 #
-use constant TRS80_LINE =>
-  "\n<------------------------------------------------------------>\n";
+use constant TRS80_LINE => "\n<------------------------------------------------------------>\n";
+
 #
 sub MyLoc { $GameHeader{PlayerRoom} }
-#
-my $BitFlags = 0;  #   /* Might be >32 flags - I haven't seen >32 yet */
 
+#
+my $BitFlags = 0;    #   #  Might be >32 flags - I haven't seen >32 yet
 
 sub RandomPercent {
-    my $n = shift;
+    my $n  = shift;
     my $rv = rand() << 6;
     $rv %= 100;
     return $rv < $n;
 }
+
 #int RandomPercent(int n)
 #{
 #    unsigned int rv=rand()<<6;
@@ -153,18 +196,16 @@ sub RandomPercent {
 #    return(0);
 #}
 #
-#int CountCarried()
-#{
-#    int ct=0;
-#    int n=0;
-#    while(ct<=$GameHeader{NumItems})
-#    {
-#        if($Items[$ct]{Location}==CARRIED)
-#            n++;
-#        ct++;
-#    }
-#    return(n);
-#}
+sub CountCarried {
+    my $num = 0;
+    for my $ct ( 0 .. $GameHeader{NumItems} ) {
+        if ( $Items[$ct]{Location} == CARRIED ) {
+            $num++;
+        }
+    }
+    return ($num);
+}
+
 #
 #void LineInput(char *buf)
 #{
@@ -213,7 +254,8 @@ sub RandomPercent {
 #}
 #
 sub GetInput {
-    GetInput:  while (1) {
+    say '-' x 80;
+    GetInput: while (1) {
         print "Tell me what to do ? ";
         chomp( my $input = <STDIN> );
 
@@ -222,7 +264,7 @@ sub GetInput {
             say "I'm stupid. Try one or two words.";
             next GetInput;
         }
-        unless(@words) {
+        unless (@words) {
             say "Huh?";
             next GetInput;
         }
@@ -235,22 +277,24 @@ sub GetInput {
                 when ('w') { $verb = 'WEST' }
                 when ('d') { $verb = 'DOWN' }
                 when ('u') { $verb = 'UP' }
+
                 # Brian Howarth interpreter also supports this
                 when ('i') { $verb = 'INVENTORY' }
             }
         }
         my $nc = WhichWord( $verb, \@Nouns );
         my $vc;
+
         # The Scott Adams system has a hack to avoid typing 'go' */
-        if(defined $nc && $nc>=1 && $nc <=6) {
-            $vc=1;
+        if ( defined $nc && $nc >= 1 && $nc <= 6 ) {
+            $vc = 1;
         }
         else {
-            $vc=WhichWord($verb,\@Verbs);
-            $nc=WhichWord($noun,\@Nouns);
+            $vc = WhichWord( $verb, \@Verbs );
+            $nc = WhichWord( $noun, \@Nouns );
         }
-        $NounText = $noun; # Needed by GET/DROP hack
-        if(!defined $vc) {
+        $NounText = $noun;    # Needed by GET/DROP hack
+        if ( !defined $vc ) {
             say("You use word(s) I don't know! ");
         }
         else {
@@ -258,19 +302,20 @@ sub GetInput {
         }
     }
 }
+
 #
 #void SaveGame()
 #{
 #    char buf[256];
 #    int ct;
 #    FILE *f;
-#    Output("Filename: ");
+#    say("Filename: ");
 #    LineInput(buf);
-#    Output("\n");
+#    say("\n");
 #    f=fopen(buf,"w");
 #    if(f==NULL)
 #    {
-#        Output("Unable to create save file.\n");
+#        say("Unable to create save file.\n");
 #        return;
 #    }
 #    for(ct=0;ct<16;ct++)
@@ -282,7 +327,7 @@ sub GetInput {
 #    for(ct=0;ct<=$GameHeader{NumItems};ct++)
 #        fprintf(f,"%hd\n",(short)$Items[$ct]{Location});
 #    fclose(f);
-#    Output("Saved.\n");
+#    say("Saved.\n");
 #}
 #
 #void LoadGame(char *name)
@@ -293,7 +338,7 @@ sub GetInput {
 #    short DarkFlag;
 #    if(f==NULL)
 #    {
-#        Output("Unable to restore game.");
+#        say("Unable to restore game.");
 #        return;
 #    }
 #    for(ct=0;ct<16;ct++)
@@ -303,7 +348,7 @@ sub GetInput {
 #    fscanf(f,"%ld %d %hd %d %d %hd\n",
 #        &BitFlags,&DarkFlag,&MyLoc,&CurrentCounter,&SavedRoom,
 #        &$GameHeader{LightTime});
-#    /* Backward compatibility */
+#    #  Backward compatibility
 #    if(DarkFlag)
 #        BitFlags|=(1<<15);
 #    for(ct=0;ct<=$GameHeader{NumItems};ct++)
@@ -317,6 +362,7 @@ sub GetInput {
 sub PerformLine {
     say "PerformLine";
 }
+
 #int PerformLine(int ct)
 #{
 #    int continuation=0;
@@ -407,14 +453,14 @@ sub PerformLine {
 #                if($Items[$dv]{Location}==$Items[$dv]{InitialLoc})
 #                    return(0);
 #                break;
-#            case 19:/* Only seen in Brian Howarth games so far */
+#            case 19:#  Only seen in Brian Howarth games so far
 #                if(CurrentCounter!=dv)
 #                    return(0);
 #                break;
 #        }
 #        cc++;
 #    }
-#    /* Actions */
+#    #  Actions
 #    act[0]=$Actions[$ct]{Action}[0];
 #    act[2]=$Actions[$ct]{Action}[1];
 #    act[1]=act[0]%150;
@@ -427,25 +473,25 @@ sub PerformLine {
 #    {
 #        if(act[cc]>=1 && act[cc]<52)
 #        {
-#            Output(Messages[act[cc]]);
-#            Output("\n");
+#            say(Messages[act[cc]]);
+#            say("\n");
 #        }
 #        else if(act[cc]>101)
 #        {
-#            Output(Messages[act[cc]-50]);
-#            Output("\n");
+#            say(Messages[act[cc]-50]);
+#            say("\n");
 #        }
 #        else switch(act[cc])
 #        {
-#            case 0:/* NOP */
+#            case 0:#  NOP
 #                break;
 #            case 52:
 #                if(CountCarried()==$GameHeader{MaxCarry})
 #                {
 #                    if($SECOND_PERSON)
-#                        Output("You are carrying too much. ");
+#                        say("You are carrying too much. ");
 #                    else
-#                        Output("I've too much to carry! ");
+#                        say("I've too much to carry! ");
 #                    break;
 #                }
 #                if(Items[param[pptr]].Location==MyLoc)
@@ -484,23 +530,23 @@ sub PerformLine {
 #                break;
 #            case 61:
 #                if($SECOND_PERSON)
-#                    Output("You are dead.\n");
+#                    say("You are dead.\n");
 #                else
-#                    Output("I am dead.\n");
+#                    say("I am dead.\n");
 #                BitFlags&=~(1<<DARKBIT);
-#                MyLoc=$GameHeader{NumRooms};/* It seems to be what the code says! */
+#                MyLoc=$GameHeader{NumRooms};#  It seems to be what the code says!
 #                say Look();
 #                break;
 #            case 62:
 #            {
-#                /* Bug fix for some systems - before it could get parameters wrong */
+#                #  Bug fix for some systems - before it could get parameters wrong
 #                int i=param[pptr++];
 #                $Items[$i]{Location}=param[pptr++];
 #                Redraw=1;
 #                break;
 #            }
 #            case 63:
-#doneit:                Output("The game is now over.\n");
+#doneit:                say("The game is now over.\n");
 #                wrefresh(Bottom);
 #                sleep(5);
 #                endwin();
@@ -520,16 +566,16 @@ sub PerformLine {
 #                    ct++;
 #                }
 #                if($SECOND_PERSON)
-#                    Output("You have stored ");
+#                    say("You have stored ");
 #                else
-#                    Output("I've stored ");
-#                OutputNumber(n);
-#                Output(" treasures.  On a scale of 0 to 100, that rates ");
-#                OutputNumber((n*100)/$GameHeader{Treasures});
-#                Output(".\n");
+#                    say("I've stored ");
+#                sayNumber(n);
+#                say(" treasures.  On a scale of 0 to 100, that rates ");
+#                sayNumber((n*100)/$GameHeader{Treasures});
+#                say(".\n");
 #                if(n==$GameHeader{Treasures})
 #                {
-#                    Output("Well done.\n");
+#                    say("Well done.\n");
 #                    goto doneit;
 #                }
 #                break;
@@ -539,9 +585,9 @@ sub PerformLine {
 #                int ct=0;
 #                int f=0;
 #                if($SECOND_PERSON)
-#                    Output("You are carrying:\n");
+#                    say("You are carrying:\n");
 #                else
-#                    Output("I'm carrying:\n");
+#                    say("I'm carrying:\n");
 #                while(ct<=$GameHeader{NumItems})
 #                {
 #                    if($Items[$ct]{Location}==CARRIED)
@@ -549,18 +595,18 @@ sub PerformLine {
 #                        if(f==1)
 #                        {
 #                            if ($TRS80_STYLE)
-#                                Output(". ");
+#                                say(". ");
 #                            else
-#                                Output(" - ");
+#                                say(" - ");
 #                        }
 #                        f=1;
-#                        Output($Items[$ct]{Text});
+#                        say($Items[$ct]{Text});
 #                    }
 #                    ct++;
 #                }
 #                if(f==0)
-#                    Output("Nothing");
-#                Output(".\n");
+#                    say("Nothing");
+#                say(".\n");
 #                break;
 #            }
 #            case 67:
@@ -577,7 +623,7 @@ sub PerformLine {
 #                BitFlags&=~(1<<LIGHTOUTBIT);
 #                break;
 #            case 70:
-#                ClearScreen(); /* pdd. */
+#                ClearScreen(); #  pdd.
 #                OutReset();
 #                break;
 #            case 71:
@@ -614,7 +660,7 @@ sub PerformLine {
 #                    Redraw=1;
 #                break;
 #            }
-#            case 76:    /* Looking at adventure .. */
+#            case 76:    #  Looking at adventure ..
 #                say Look();
 #                break;
 #            case 77:
@@ -622,7 +668,7 @@ sub PerformLine {
 #                    CurrentCounter--;
 #                break;
 #            case 78:
-#                OutputNumber(CurrentCounter);
+#                sayNumber(CurrentCounter);
 #                break;
 #            case 79:
 #                CurrentCounter=param[pptr++];
@@ -658,14 +704,14 @@ sub PerformLine {
 #                   know if there is a maximum value to limit too */
 #                break;
 #            case 84:
-#                Output(NounText);
+#                say(NounText);
 #                break;
 #            case 85:
-#                Output(NounText);
-#                Output("\n");
+#                say(NounText);
+#                say("\n");
 #                break;
 #            case 86:
-#                Output("\n");
+#                say("\n");
 #                break;
 #            case 87:
 #            {
@@ -681,13 +727,13 @@ sub PerformLine {
 #            case 88:
 #                wrefresh(Top);
 #                wrefresh(Bottom);
-#                sleep(2);    /* DOC's say 2 seconds. Spectrum times at 1.5 */
+#                sleep(2);    #  DOC's say 2 seconds. Spectrum times at 1.5
 #                break;
 #            case 89:
 #                pptr++;
-#                /* SAGA draw picture n */
-#                /* Spectrum Seas of Blood - start combat ? */
-#                /* Poking this into older spectrum games causes a crash */
+#                #  SAGA draw picture n
+#                #  Spectrum Seas of Blood - start combat ?
+#                #  Poking this into older spectrum games causes a crash
 #                break;
 #            default:
 #                fprintf(stderr,"Unknown action %d [Param begins %d %d]\n",
@@ -696,17 +742,17 @@ sub PerformLine {
 #        }
 #        cc++;
 #    }
-#    return(1+continuation);        
+#    return(1+continuation);
 #}
 #
 #
 sub PerformActions {
     my ( $vb, $no ) = @_;
 
-    state $disable_sysfunc = 0; # recursion lock?
-    my $d = $BitFlags&(1<<DARKBIT);
+    state $disable_sysfunc = 0;    # recursion lock?
+    my $d = $BitFlags & ( 1 << DARKBIT );
 
-    if($vb==1 && !defined $no) {
+    if ( $vb == 1 && !defined $no ) {
         say("Give me a direction too.");
         return 0;
     }
@@ -745,10 +791,10 @@ sub PerformActions {
         }
         return 0;
     }
-    my $ct = 0;
-    my $fl = -1;
+    my $ct      = 0;
+    my $fl      = -1;
     my $doagain = 0;
-    ACTIONS: foreach my $ct (0..$GameHeader{NumActions}) {
+    ACTIONS: foreach my $ct ( 0 .. $GameHeader{NumActions} ) {
         my ( $vv, $nv );
         $vv = $Actions[$ct]{Vocab};
 
@@ -758,7 +804,7 @@ sub PerformActions {
             last ACTIONS;
         }
 
-        #/* Oops.. added this minor cockup fix 1.11 */
+        ##  Oops.. added this minor cockup fix 1.11
         if ( $vb != 0 && !$doagain && $fl == 0 ) {
             last ACTIONS;
         }
@@ -773,7 +819,7 @@ sub PerformActions {
                 if ( $fl == -1 ) { $fl = -2 }
                 if ( ( $f2 = PerformLine($ct) ) > 0 ) {
 
-                    #/* ahah finally figured it out ! */
+                    ##  ahah finally figured it out !
                     $fl = 0;
                     if ( $f2 == 2 ) {
                         $doagain = 1;
@@ -788,134 +834,126 @@ sub PerformActions {
             $doagain = 0;
         }
     }
-#    if(fl!=0 && disable_sysfunc==0)
-#    {
-#        int i;
-#        if($Items[LIGHT_SOURCE]{Location}==MyLoc ||
-#           $Items[LIGHT_SOURCE]{Location}==CARRIED)
-#               d=0;
-#        if(vb==10 || vb==18)
-#        {
-#            /* Yes they really _are_ hardcoded values */
-#            if(vb==10)
-#            {
-#                if(strcasecmp(NounText,"ALL")==0)
-#                {
-#                    int ct=0;
-#                    int f=0;
-#                    
-#                    if(d)
-#                    {
-#                        Output("It is dark.\n");
-#                        return 0;
-#                    }
-#                    while(ct<=$GameHeader{NumItems})
-#                    {
-#                        if($Items[$ct]{Location}==MyLoc && $Items[$ct]{AutoGet}!=NULL && $Items[$ct]{AutoGet}[0]!='*')
-#                        {
-#                            no=WhichWord($Items[$ct]{AutoGet},Nouns);
-#                            disable_sysfunc=1;    /* Don't recurse into auto get ! */
-#                            PerformActions(vb,no);    /* Recursively check each items table code */
-#                            disable_sysfunc=0;
-#                            if(CountCarried()==$GameHeader{MaxCarry})
-#                            {
-#                                if($SECOND_PERSON)
-#                                    Output("You are carrying too much. ");
-#                                else
-#                                    Output("I've too much to carry. ");
-#                                return(0);
-#                            }
-#                             $Items[$ct]{Location}= CARRIED;
-#                             Redraw=1;
-#                             OutBuf($Items[$ct]{Text});
-#                             Output(": O.K.\n");
-#                             f=1;
-#                         }
-#                         ct++;
-#                    }
-#                    if(f==0)
-#                        Output("Nothing taken.");
-#                    return(0);
-#                }
-#                if(no==-1)
-#                {
-#                    Output("What ? ");
-#                    return(0);
-#                }
-#                if(CountCarried()==$GameHeader{MaxCarry})
-#                {
-#                    if($SECOND_PERSON)
-#                        Output("You are carrying too much. ");
-#                    else
-#                        Output("I've too much to carry. ");
-#                    return(0);
-#                }
-#                i=MatchUpItem(NounText,MyLoc);
-#                if(i==-1)
-#                {
-#                    if($SECOND_PERSON)
-#                        Output("It is beyond your power to do that. ");
-#                    else
-#                        Output("It's beyond my power to do that. ");
-#                    return(0);
-#                }
-#                $Items[$i]{Location}= CARRIED;
-#                Output("O.K. ");
-#                Redraw=1;
-#                return(0);
-#            }
-#            if(vb==18)
-#            {
-#                if(strcasecmp(NounText,"ALL")==0)
-#                {
-#                    int ct=0;
-#                    int f=0;
-#                    while(ct<=$GameHeader{NumItems})
-#                    {
-#                        if($Items[$ct]{Location}==CARRIED && $Items[$ct]{AutoGet} && $Items[$ct]{AutoGet}[0]!='*')
-#                        {
-#                            no=WhichWord($Items[$ct]{AutoGet},Nouns);
-#                            disable_sysfunc=1;
-#                            PerformActions(vb,no);
-#                            disable_sysfunc=0;
-#                            $Items[$ct]{Location}=MyLoc;
-#                            OutBuf($Items[$ct]{Text});
-#                            Output(": O.K.\n");
-#                            Redraw=1;
-#                            f=1;
-#                        }
-#                        ct++;
-#                    }
-#                    if(f==0)
-#                        Output("Nothing dropped.\n");
-#                    return(0);
-#                }
-#                if(no==-1)
-#                {
-#                    Output("What ? ");
-#                    return(0);
-#                }
-#                i=MatchUpItem(NounText,CARRIED);
-#                if(i==-1)
-#                {
-#                    if($SECOND_PERSON)
-#                        Output("It's beyond your power to do that.\n");
-#                    else
-#                        Output("It's beyond my power to do that.\n");
-#                    return(0);
-#                }
-#                $Items[$i]{Location}=MyLoc;
-#                Output("O.K. ");
-#                Redraw=1;
-#                return(0);
-#            }
-#        }
-#    }
-#    return(fl);
+    if ( $fl != 0 && $disable_sysfunc == 0 ) {
+        my $i;
+        if (   $Items[LIGHT_SOURCE]{Location} == MyLoc
+            || $Items[LIGHT_SOURCE]{Location} == CARRIED )
+        {
+            $d = 0;
+        }
+        if ( $vb == GET || $vb == DROP ) {
+
+            # Yes they really _are_ hardcoded values
+            if ( $vb == GET ) {
+                if ( strncasecmp( $NounText, "ALL", $GameHeader{WordLength} ) ) {
+                    my $f = 0;
+                    if ($d) {
+                        say("It is dark.\n");
+                        return 0;
+                    }
+                    for my $ct ( 0 .. $GameHeader{NumItems} ) {
+                        if (   $Items[$ct]{Location} == MyLoc
+                            && defined $Items[$ct]{AutoGet}
+                            && $Items[$ct]{AutoGet} !~ /^\*/ )
+                        {
+                            $no = WhichWord( $Items[$ct]{AutoGet}, \@Nouns );
+                            $disable_sysfunc = 1;    #  Don't recurse into auto get !
+                            PerformActions( $vb, $no );    #  Recursively check each items table code
+                            $disable_sysfunc = 0;
+                            if ( CountCarried() == $GameHeader{MaxCarry} ) {
+                                if ($SECOND_PERSON) {
+                                    say("You are carrying too much. ");
+                                }
+                                else {
+                                    say("I've too much to carry. ");
+                                }
+                                return (0);
+                            }
+                            $Items[$ct]{Location} = CARRIED;
+                            say( $Items[$ct]{Text} .": O.K.");
+                            $f = 1;
+                        }
+                    }
+                    if ( $f == 0 ) {
+                        say("Nothing taken.");
+                    }
+                    return (0);
+                }
+                if ( not defined $no ) {
+                    say("What ? ");
+                    return (0);
+                }
+                if ( CountCarried() == $GameHeader{MaxCarry} ) {
+                    if ($SECOND_PERSON) {
+                        say("You are carrying too much. ");
+                    }
+                    else {
+                        say("I've too much to carry. ");
+                    }
+                    return (0);
+                }
+                say "NounText is $NounText";
+                my $i = MatchUpItem( $NounText, MyLoc );
+                if ( not defined $i ) {
+                    if ($SECOND_PERSON) {
+                        say("It is beyond your power to do that. ");
+                    }
+                    else {
+                        say("It's beyond my power to do that. ");
+                    }
+                    return (0);
+                }
+                $Items[$i]{Location} = CARRIED;
+                say("O.K. ");
+                return (0);
+            }
+            if ( $vb == DROP ) {
+                if ( strcasecmp( $NounText, "ALL" ) ) {
+                    my $f = 0;
+                    foreach my $ct ( 0 .. $GameHeader{NumItems} ) {
+                        if (   $Items[$ct]{Location} == CARRIED
+                            && $Items[$ct]{AutoGet}
+                            && $Items[$ct]{AutoGet} !~ /^\*/ )
+                        {
+                            $no = WhichWord( $Items[$ct]{AutoGet}, \@Nouns );
+                            $disable_sysfunc = 1;
+                            PerformActions( $vb, $no );
+                            $disable_sysfunc = 0;
+                            $Items[$ct]{Location} = MyLoc;
+                            say( $Items[$ct]{Text} .": O.K.\n");
+                            $f = 1;
+                        }
+                        if ( $f == 0 ) {
+                            say("Nothing dropped.\n");
+                        }
+                    }
+                    return (0);
+                }
+                if ( !defined $no ) {
+                    say("What ? ");
+                    return (0);
+                }
+                $i = MatchUpItem( $NounText, CARRIED );
+                if ( not defined $i ) {
+                    if ($SECOND_PERSON) {
+                        say("It's beyond your power to do that.\n");
+                    }
+                    else {
+                        say("It's beyond my power to do that.\n");
+                    }
+                    return (0);
+                }
+                $Items[$i]{Location} = MyLoc;
+                say("O.K. ");
+                return (0);
+            }
+        }
+    }
+    return ($fl);
 }
-    
+
 sub main {
-    
+
     #FILE *f;
     #int vb,no;
 
@@ -926,12 +964,11 @@ sub main {
         t => \$TRS80_STYLE,
         p => \$PREHISTORIC_LAMP,
         h => sub {
-            say("$0 [-h] [-y] [-s] [-i] [-t] [-d] [-p] <gamename> [savedgame]."
-            );
+            say("$0 [-h] [-y] [-s] [-i] [-t] [-d] [-p] <gamename> [savedgame].");
             exit;
         },
     );
-$ARGV[0] //= 'adv00'; # XXX remove
+    $ARGV[0] //= 'adv00';    # XXX remove
     if ( !@ARGV ) {
         warn "$0 <database> <savefile>.\n";
         exit(1);
@@ -952,77 +989,78 @@ Release 1.14, (c) 1993,1994,1995 Swansea University Computer Society.\n\
 Distributed under the GNU software license
 
 END
-    LoadDatabase($ARGV[0],$DEBUGGING);
+    LoadDatabase( $ARGV[0], $DEBUGGING );
 
-#    if(argc==3)
-#        LoadGame(argv[2]);
+    #    if(argc==3)
+    #        LoadGame(argv[2]);
 
     say Look();
-    while(1) {
-#        if(Redraw!=0)
-#        {
-#            say Look();
-#            Redraw=0;
-#        }
-        PerformActions(0,0);
-#        if(Redraw!=0)
-#        {
-#            say Look();
-#            Redraw=0;
-#        }
+    while (1) {
+
+        #        if(Redraw!=0)
+        #        {
+        #            say Look();
+        #            Redraw=0;
+        #        }
+        PerformActions( 0, 0 );
+        #        if(Redraw!=0)
+        #        {
+        #            say Look();
+        #            Redraw=0;
+        #        }
         my ( $verb, $noun ) = GetInput();
-        say '-' x 80;
         given ( PerformActions( $verb, $noun ) ) {
             when (-1) { say("I don't understand your command. ") }
             when (-2) { say("I can't do that yet. ") }
         }
-#        /* Brian Howarth games seem to use -1 for forever */
-#        if($Items[LIGHT_SOURCE]{Location}/*==-1*/!=DESTROYED && $GameHeader{LightTime}!= -1)
-#        {
-#            $GameHeader{LightTime}--;
-#            if($GameHeader{LightTime}<1)
-#            {
-#                BitFlags|=(1<<LIGHTOUTBIT);
-#                if($Items[LIGHT_SOURCE]{Location}==CARRIED ||
-#                    $Items[LIGHT_SOURCE]{Location}==MyLoc)
-#                {
-#                    if($SCOTTLIGHT)
-#                        Output("Light has run out! ");
-#                    else
-#                        Output("Your light has run out. ");
-#                }
-#                if(Options&PREHISTORIC_LAMP)
-#                    $Items[LIGHT_SOURCE]{Location}=DESTROYED;
-#            }
-#            else if($GameHeader{LightTime}<25)
-#            {
-#                if($Items[LIGHT_SOURCE]{Location}==CARRIED ||
-#                    $Items[LIGHT_SOURCE]{Location}==MyLoc)
-#                {
-#
-#                    if($SCOTTLIGHT)
-#                    {
-#                        Output("Light runs out in ");
-#                        OutputNumber($GameHeader{LightTime});
-#                        Output(" turns. ");
-#                    }
-#                    else
-#                    {
-#                        if($GameHeader{LightTime}%5==0)
-#                            Output("Your light is growing dim. ");
-#                    }
-#                }
-#            }
-#        }
+
+        #        #  Brian Howarth games seem to use -1 for forever
+        #        if($Items[LIGHT_SOURCE]{Location}# ==-1!=DESTROYED && $GameHeader{LightTime}!= -1)
+        #        {
+        #            $GameHeader{LightTime}--;
+        #            if($GameHeader{LightTime}<1)
+        #            {
+        #                BitFlags|=(1<<LIGHTOUTBIT);
+        #                if($Items[LIGHT_SOURCE]{Location}==CARRIED ||
+        #                    $Items[LIGHT_SOURCE]{Location}==MyLoc)
+        #                {
+        #                    if($SCOTTLIGHT)
+        #                        say("Light has run out! ");
+        #                    else
+        #                        say("Your light has run out. ");
+        #                }
+        #                if(Options&PREHISTORIC_LAMP)
+        #                    $Items[LIGHT_SOURCE]{Location}=DESTROYED;
+        #            }
+        #            else if($GameHeader{LightTime}<25)
+        #            {
+        #                if($Items[LIGHT_SOURCE]{Location}==CARRIED ||
+        #                    $Items[LIGHT_SOURCE]{Location}==MyLoc)
+        #                {
+        #
+        #                    if($SCOTTLIGHT)
+        #                    {
+        #                        say("Light runs out in ");
+        #                        sayNumber($GameHeader{LightTime});
+        #                        say(" turns. ");
+        #                    }
+        #                    else
+        #                    {
+        #                        if($GameHeader{LightTime}%5==0)
+        #                            say("Your light is growing dim. ");
+        #                    }
+        #                }
+        #            }
+        #        }
     }
 }
 main() unless caller;
 
 sub _get_int {
     my $fh = shift;
-    chomp(my $int = <$fh>);
+    chomp( my $int = <$fh> );
     $int =~ s/^\s+|\s+$//g;
-    unless ($int =~ /^[0-9]+$/ && $int >= 0) {
+    unless ( $int =~ /^[0-9]+$/ && $int >= 0 ) {
         croak("Read '$int' from database. Need an int");
     }
     return $int;
@@ -1091,7 +1129,7 @@ sub LoadDatabase {
         push @Actions => \%action;
     }
     if (0) {
-        print Dumper($GameHeader{NumActions},$Actions[-1]);
+        print Dumper( $GameHeader{NumActions}, $Actions[-1] );
         print <<'END';
 NumActions: 169
 Action0:    8176
@@ -1111,7 +1149,7 @@ END
         push @Nouns => ReadString($fh);
     }
     if (0) {
-        print Dumper($Verbs[-1], $Nouns[-1]);
+        print Dumper( $Verbs[-1], $Nouns[-1] );
         print <<'END';
 Last verb: OPE
 Last noun: YOH
@@ -1131,7 +1169,7 @@ END
         push @Rooms => \%room;
     }
     if (0) {
-        print Dumper($Rooms[-1]);
+        print Dumper( $Rooms[-1] );
         print <<'END';
 large misty room with strange
 unreadable letters over all the exits.
@@ -1142,8 +1180,8 @@ END
     for ( 0 .. $GameHeader{NumMessages} ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
     }
-    if(0) {
-        print Dumper($GameHeader{NumMessages}, $Messages[-1],$.);
+    if (0) {
+        print Dumper( $GameHeader{NumMessages}, $Messages[-1], $. );
         exit;
     }
 
@@ -1157,7 +1195,7 @@ END
         };
     }
 
-    ReadString($fh) for 0 .. $GameHeader{NumActions};   # skip comment strings
+    ReadString($fh) for 0 .. $GameHeader{NumActions};    # skip comment strings
 
     my $version = _get_int($fh);
     printf(
@@ -1170,7 +1208,7 @@ sub Look {
     my @ExitNames = qw(North South East West Up Down);
 
     my $look = '';
-    my $r = $Rooms[MyLoc];
+    my $r    = $Rooms[MyLoc];
 
     if (   ( $BitFlags & ( 1 << DARKBIT ) )
         && $Items[LIGHT_SOURCE]{Location} != CARRIED
@@ -1183,18 +1221,19 @@ sub Look {
             return ("I can't see. It is too dark!");
         }
     }
-
-    if ( substr($r->{Text}, 0, 1) eq '*' ) { # XXX ???
-        $look .= $Rooms[ MyLoc + 1 ]->{Text}."\n";
+    my $text = $r->{Text};
+    if ( $text =~ s/^\*// ) {    # XXX ???
+        $look .= $text;
     }
     else {
         if ($SECOND_PERSON) {
-            $look .= sprintf "You are in a %s\n", $r->{Text};
+            $look .= "You are in a $text\n";
         }
         else {
-            $look .= sprintf( "I'm in a %s\n", $r->{Text} );
+            $look .= "I'm in a $text\n";
         }
     }
+    $look .= "\n";
 
     my $f = 0;
     $look .= "\nObvious exits:\n";
@@ -1223,7 +1262,8 @@ sub Look {
     foreach my $i ( 0 .. $GameHeader{NumItems} ) {
         if ( $Items[$i]{Location} == MyLoc ) {
             if ( !$f ) {
-                $look .= $SECOND_PERSON
+                $look .=
+                  $SECOND_PERSON
                   ? "You can also see:\n"
                   : "I can also see:\n";
                 $pos = 16;
@@ -1232,7 +1272,7 @@ sub Look {
             else {
                 $look .= "\n";
             }
-            $look .= "  - ".$Items[$i]{Text};
+            $look .= "  - " . $Items[$i]{Text};
         }
     }
     return $look;

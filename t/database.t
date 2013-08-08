@@ -436,4 +436,9 @@ eq_or_diff \@::Items, $expected_items,
 is @::Items, $::GameHeader{NumItems}+1,
 	'... and the number of items should be correct';
 
+for ( 0 .. $#$expected_nouns ) {
+    next if $expected_nouns->[$_] =~ /^\*/;
+    print "use constant $expected_nouns->[$_] => $_;\n";
+}
+
 done_testing;
