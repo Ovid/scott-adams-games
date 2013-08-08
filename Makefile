@@ -12,4 +12,4 @@ ScottCurses:	ScottCurses.o
 	$(CC) ScottCurses.o -o ScottCurses -lcurses -ltermcap
 
 run: ScottCurses
-	./ScottCurses adv00
+	./ScottCurses -y adv00
