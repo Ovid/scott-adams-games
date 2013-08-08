@@ -19,14 +19,14 @@ use constant DESTROYED    => 0;   # /* Destroyed */
 use constant DARKBIT      => 1;   #
 use constant LIGHTOUTBIT  => 16;  # /* Light gone out */
 
-my $SECOND_PERSON    = 1;    # "you are" instead of "I am";
-my $SCOTTLIGHT       = 0;    #	/* Authentic Scott Adams light messages */
-my $DEBUGGING        = 0;    #	/* Info from database load */
-my $TRS80_STYLE      = 0;    #	/* Display in style used on TRS-80 */
-my $PREHISTORIC_LAMP = 1;    #	/* Destroy the lamp (very old databases) */
+our $SECOND_PERSON    = 1;    # "you are" instead of "I am";
+our $SCOTTLIGHT       = 0;    #	/* Authentic Scott Adams light messages */
+our $DEBUGGING        = 0;    #	/* Info from database load */
+our $TRS80_STYLE      = 0;    #	/* Display in style used on TRS-80 */
+our $PREHISTORIC_LAMP = 1;    #	/* Destroy the lamp (very old databases) */
  
 #     NumWords        /* Smaller of verb/noun is padded to same size */
-my %GameHeader = map { $_ => 0 } qw(
+our %GameHeader = map { $_ => 0 } qw(
   Unknown1
   NumItems
   NumActions
@@ -42,7 +42,7 @@ my %GameHeader = map { $_ => 0 } qw(
   Unknown2
 );
 
-my @Actions;
+our @Actions;
 
 #
 #typedef struct
@@ -65,13 +65,13 @@ my @Actions;
 #sub getpid {$$}
 #
 #Tail GameTail;
-my @Items;
-my @Rooms;
-my @Verbs;
-my @Nouns;
-my @Messages;
+our @Items;
+our @Rooms;
+our @Verbs;
+our @Nouns;
+our @Messages;
 #Action *Actions;
-my $LightRefill;
+our $LightRefill;
 #char NounText[16];
 #int Counters[16];    /* Range unknown */
 #int CurrentCounter;
@@ -80,10 +80,10 @@ my $LightRefill;
 #int DisplayUp;        /* Curses up */
 #WINDOW *Top,*Bottom;
 #int Redraw;        /* Update item window */
-my $Options = 0;   #     /* Option flags set */
-my $Width; #       /* Terminal width */
-my $TopHeight; #       /* Height of top window */
-my $BottomHeight; #   /* Height of bottom window */
+our $Options = 0;   #     /* Option flags set */
+our $Width; #       /* Terminal width */
+our $TopHeight; #       /* Height of top window */
+our $BottomHeight; #   /* Height of bottom window */
 #
 use constant TRS80_LINE =>
   "\n<------------------------------------------------------------>\n";
@@ -1050,7 +1050,7 @@ END
 #        }
     }
 }
-main();
+main() unless caller;
 
 sub _get_int {
     my $fh = shift;
