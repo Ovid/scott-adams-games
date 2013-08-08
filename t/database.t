@@ -4,8 +4,7 @@ require "$FindBin::Bin/../bin/scott.pl";
 
 my $database = 't/data/adv00';
 
-lives_ok { ::LoadDatabase($database) }
-'Loading a valid database should succeed';
+lives_ok { ::LoadDatabase($database) } 'Loading a valid database should succeed';
 
 my $expected_headers = {
     LightTime    => 125,
@@ -22,8 +21,7 @@ my $expected_headers = {
     Unknown2     => 0,
     WordLength   => 3
 };
-eq_or_diff \%::GameHeader, $expected_headers,
-	'... and the headers read from the db should be correct';
+eq_or_diff \%::GameHeader, $expected_headers, '... and the headers read from the db should be correct';
 
 my $expected_actions = [
     { Action => [ 17612, 0 ],     Condition => [ 161,  386,  160,  200,  0 ],   Vocab => 75 },
@@ -198,9 +196,244 @@ my $expected_actions = [
     { Action => [ 8176,  0 ],     Condition => [ 584,  600,  0,    0,    0 ],   Vocab => 166 }
 ];
 
-eq_or_diff \@::Actions, $expected_actions,
-	'... and the actions read from the db should be correct';
+eq_or_diff \@::Actions, $expected_actions, 'The actions read from the db should be correct';
 
-#explain scalar @::Actions, \%::GameHeader;
+is @::Actions, $::GameHeader{NumActions} + 1, '... and they should match the header';
+
+my $expected_verbs = [
+    'AUT',
+    'GO', '*ENT', '*RUN', '*WAL', '*CLI',
+    'JUM',
+    'AT',
+    'CHO', '*CUT',
+    'GET', '*TAK', '*PIC', '*CAT',
+    'LIG', '*.',   '*IGN', '*BUR',
+    'DRO', '*REL', '*SPI', '*LEA', '*GIV', '*POU',
+    'THR', '*TOS',
+    'QUI',
+    'SWI',
+    'RUB',
+    'LOO', '*EXA', '*DES',
+    'STO',
+    'SCO',
+    'INV',
+    'SAV',
+    'WAK',
+    'UNL',
+    'REA',
+    'ATT', '*SLA', '*KIL',
+    'DRI', '*EAT',
+    '.',
+    'FIN', '*LOC',
+    'HEL',
+    'SAY', '*SPE', '*CAL',
+    'SCR', '*YEL', '*HOL',
+    '.',
+    'FIL',
+    'CRO',
+    'DAM',
+    'MAK', '*BUI',
+    'WAV', '*TIC', '*KIC', '*KIS', '*TOU', '*FEE', '*FUC', '*HIT', '*POK',
+    'OPE'
+];
+
+eq_or_diff \@::Verbs, $expected_verbs, 'The verbs and their synonyms should be correct';
+is @::Verbs, $::GameHeader{NumWords} + 1, '... and they should match the header';
+
+my $expected_nouns = [
+    'ANY',
+    'NOR',
+    'SOU',
+    'EAS',
+    'WES',
+    'UP',
+    'DOW',
+    'NET',
+    'FIS',
+    'AWA',
+    'MIR',
+    'AXE', '*AX',
+    'WAT',
+    'BOT', '*CON',
+    'HOL',
+    'LAM',
+    'SPI',
+    'WIN',
+    'DOO',
+    'MUD', '*MED',
+    'BEE',
+    'ROC',
+    'GAS',
+    'FLI',
+    'EGG',
+    'OIL', '*SLI',
+    'KEY',
+    'HEL',
+    'BUN',
+    'INV',
+    'LED',
+    'THR',
+    'CRO',
+    'BRI',
+    'BEA',
+    'DRA',
+    'RUG',
+    'RUB',
+    'HON',
+    'FRU',
+    'OX',
+    'RIN',
+    'CHI', '*BIT',
+    'BRA',
+    'SIG',
+    'BLA',
+    'WEB', '*WRI',
+    'SWA',
+    'LAV', '*DAM',
+    'HAL',
+    'TRE', '*STU',
+    'FIR',
+    'SHO', '*BAN',
+    'ADV',
+    'GLA',
+    'ARO',
+    'GAM',
+    'BOO',
+    'CHA',
+    'LAK',
+    'YOH'
+];
+eq_or_diff \@::Nouns, $expected_nouns, 'The nouns and their synonyms should be correct';
+is @::Nouns, $::GameHeader{NumWords} + 1, '... and they should match the header';
+
+my $expected_rooms = [
+    { Exits => [ 0,  7,  10, 1,  0,  24 ], Text => '' },
+    { Exits => [ 23, 0,  29, 25, 0,  0 ],  Text => 'dismal swamp' },
+    { Exits => [ 0,  0,  0,  0,  0,  1 ],  Text => 'top of a tall cypress tree' },
+    { Exits => [ 0,  0,  0,  0,  1,  4 ],  Text => 'damp hollow stump in the swamp' },
+    { Exits => [ 0,  0,  0,  0,  3,  0 ],  Text => 'root chamber under the stump' },
+    { Exits => [ 0,  0,  0,  0,  4,  0 ],  Text => 'semi-dark hole by the root chamber' },
+    { Exits => [ 0,  0,  0,  0,  5,  0 ],  Text => 'long down sloping hall' },
+    { Exits => [ 31, 9,  0,  27, 6,  12 ], Text => '.' },
+    { Exits => [ 0,  31, 0,  0,  0,  0 ],  Text => '.' },
+    { Exits => [ 7,  0,  0,  0,  20, 0 ],  Text => '.' },
+    { Exits => [ 26, 29, 0,  23, 0,  0 ],  Text => '*I\'m on the shore of a lake' },
+    { Exits => [ 11, 11, 23, 11, 0,  0 ],  Text => 'forest' },
+    { Exits => [ 13, 15, 15, 0,  0,  13 ], Text => '.' },
+    { Exits => [ 0,  0,  0,  14, 12, 0 ],  Text => '.' },
+    { Exits => [ 17, 12, 13, 16, 16, 17 ], Text => '.' },
+    { Exits => [ 12, 0,  13, 12, 13, 0 ],  Text => '.' },
+    { Exits => [ 0,  17, 0,  0,  14, 17 ], Text => '.' },
+    { Exits => [ 17, 12, 12, 15, 14, 18 ], Text => '.' },
+    { Exits => [ 0,  0,  0,  0,  17, 0 ],  Text => '.' },
+    { Exits => [ 0,  0,  0,  20, 0,  0 ],  Text => '.' },
+    { Exits => [ 0,  0,  0,  0,  0,  9 ],  Text => '.' },
+    { Exits => [ 0,  0,  0,  0,  0,  0 ],  Text => '.' },
+    { Exits => [ 0,  0,  0,  21, 0,  0 ],  Text => '.' },
+    { Exits => [ 0,  1,  10, 11, 0,  0 ],  Text => 'sunny meadow' },
+    {   Exits => [ 0, 0, 0, 0, 0, 0 ],
+        Text  => "*I think I'm in real trouble now. There's a fellow here with
+a pitchfork and pointed tail. ...Oh Hell!"
+    },
+    { Exits => [ 11, 0, 1, 0, 0, 0 ], Text => 'hidden grove' },
+    { Exits => [ 0,  0, 0, 0, 0, 0 ], Text => 'quick-sand bog' },
+    { Exits => [ 0,  0, 7, 0, 0, 0 ], Text => '.' },
+    {   Exits => [ 0, 0, 0, 0, 0, 11 ],
+        Text  => "top of an oak.
+To the East I see a meadow, beyond that a lake."
+    },
+    { Exits => [ 10, 0, 0, 1, 0, 0 ], Text => "*I'm at the edge of a BOTTOMLESS hole" },
+    {   Exits => [ 0, 0, 0, 0, 29, 24 ],
+        Text  => "*I'm on a ledge just below the rim of the BOTTOMLESS hole. I
+don't think I want to go down"
+    },
+    { Exits => [ 8,  7,  0,  0,  0,  0 ],  Text => '.' },
+    { Exits => [ 32, 33, 32, 32, 32, 32 ], Text => "*I'm in an endless corridor" },
+    {   Exits => [ 32, 24, 11, 24, 28, 24 ],
+        Text  => "large misty room with strange
+unreadable letters over all the exits."
+    }
+];
+eq_or_diff \@::Rooms, $expected_rooms,
+	'The rooms should be correct';
+is @::Rooms, $::GameHeader{NumRooms}+1,
+	'... and the number of rooms should match the header';
+
+my $expected_items = [
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '4',  Location => '4',  Text => 'Dark hole' },
+    { AutoGet => 'RUB', InitialLoc => '4',  Location => '4',  Text => '*Pot of RUBIES*' },
+    { AutoGet => undef, InitialLoc => '2',  Location => '2',  Text => 'Spider web with writing on it' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '-HOLLOW- stump and remains of a felled tree' },
+    { AutoGet => undef, InitialLoc => '1',  Location => '1',  Text => 'Cypress tree' },
+    { AutoGet => undef, InitialLoc => '10', Location => '10', Text => 'Water' },
+    { AutoGet => 'MUD', InitialLoc => '1',  Location => '1',  Text => 'Evil smelling mud' },
+    { AutoGet => 'FIS', InitialLoc => '10', Location => '10', Text => 'Fish' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => 'AXE', InitialLoc => '10', Location => '10', Text => 'Rusty axe (Magic word `BUNYON` on it)' },
+    { AutoGet => 'BOT', InitialLoc => '3',  Location => '3',  Text => 'Water in bottle' },
+    { AutoGet => 'BOT', InitialLoc => '0',  Location => '0',  Text => 'Empty bottle' },
+    { AutoGet => 'KEY', InitialLoc => '2',  Location => '2',  Text => 'Ring of skeleton keys' },
+    { AutoGet => undef, InitialLoc => '3', Location => '3', Text => 'Sign `Leave *TREASURES* here, then say: SCORE`' },
+    { AutoGet => undef, InitialLoc => '5', Location => '5', Text => 'Locked door' },
+    { AutoGet => undef, InitialLoc => '0', Location => '0', Text => 'Open door with a hallway beyond' },
+    { AutoGet => undef, InitialLoc => '1', Location => '1', Text => 'Swamp gas' },
+    { AutoGet => undef, InitialLoc => '0', Location => '0', Text => '.' },
+    { AutoGet => undef, InitialLoc => '0', Location => '0', Text => 'Chigger bites' },
+    { AutoGet => undef, InitialLoc => '0', Location => '0', Text => 'Infected chigger bites' },
+    { AutoGet => 'OIL', InitialLoc => '1', Location => '1', Text => 'Patches of `OILY` slime' },
+    { AutoGet => undef, InitialLoc => '8', Location => '8', Text => '.' },
+    { AutoGet => undef, InitialLoc => '0', Location => '0', Text => '.' },
+    { AutoGet => undef, InitialLoc => '0', Location => '0', Text => '.' },
+    { AutoGet => undef, InitialLoc => '0', Location => '0', Text => '.' },
+    { AutoGet => undef, InitialLoc => '23', Location => '23', Text => 'Large sleeping dragon' },
+    { AutoGet => 'FLI', InitialLoc => '30', Location => '30', Text => 'Flint & steel' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    {   AutoGet => undef, InitialLoc => '23', Location => '23',
+        Text => 'Sign here says `In many cases mud is good. In others...`'
+    },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => 'CHI', InitialLoc => '1',  Location => '1',  Text => 'Chiggers' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => 'FRU', InitialLoc => '25', Location => '25', Text => '*JEWELED FRUIT*' },
+    { AutoGet => 'OX',  InitialLoc => '26', Location => '26', Text => '*Small statue of a BLUE OX*' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    {   AutoGet => undef, InitialLoc => '33', Location => '33',
+        Text => 'Sign says `LIMBO. Find right exit and live again!`'
+    },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '10', Location => '10', Text => 'Sign says `No swimming allowed here`' },
+    { AutoGet => undef, InitialLoc => '17', Location => '17', Text => 'Arrow pointing down' },
+    { AutoGet => 'FIS', InitialLoc => '0',  Location => '0',  Text => 'Dead fish' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '25', Location => '25', Text => "Sign says `Paul's place`" },
+    { AutoGet => undef, InitialLoc => '11', Location => '11', Text => 'Trees' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '.' },
+    { AutoGet => 'ADV', InitialLoc => '29', Location => '29', Text => 'Large outdoor Advertisement' },
+    { AutoGet => undef, InitialLoc => '29', Location => '29', Text => 'Hole' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '' },
+    { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '' }
+];
+eq_or_diff \@::Items, $expected_items,
+	'The items read should be correct';
+is @::Items, $::GameHeader{NumItems}+1,
+	'... and the number of items should be correct';
 
 done_testing;
