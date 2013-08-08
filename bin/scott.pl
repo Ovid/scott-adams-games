@@ -549,7 +549,7 @@ sub PerformLine {
 #                    Output("I am dead.\n");
 #                BitFlags&=~(1<<DARKBIT);
 #                MyLoc=$GameHeader{NumRooms};/* It seems to be what the code says! */
-#                Look();
+#                say Look();
 #                break;
 #            case 62:
 #            {
@@ -566,7 +566,7 @@ sub PerformLine {
 #                endwin();
 #                exit(0);
 #            case 64:
-#                Look();
+#                say Look();
 #                break;
 #            case 65:
 #            {
@@ -675,7 +675,7 @@ sub PerformLine {
 #                break;
 #            }
 #            case 76:    /* Looking at adventure .. */
-#                Look();
+#                say Look();
 #                break;
 #            case 77:
 #                if(CurrentCounter>=0)
@@ -785,7 +785,7 @@ sub PerformActions {
 
         if ( $nl != 0 ) {
             $GameHeader{PlayerRoom} = $nl;
-            Look();
+            say Look();
             return 0;
         }
         if ($d) {
@@ -1019,17 +1019,17 @@ END
 #    if(argc==3)
 #        LoadGame(argv[2]);
 
-    Look();
+    say Look();
     while(1) {
 #        if(Redraw!=0)
 #        {
-#            Look();
+#            say Look();
 #            Redraw=0;
 #        }
         PerformActions(0,0);
 #        if(Redraw!=0)
 #        {
-#            Look();
+#            say Look();
 #            Redraw=0;
 #        }
 #        GetInput(&vb,&no);
@@ -1233,6 +1233,7 @@ END
 sub Look {
     my @ExitNames = qw(North South East West Up Down);
 
+	my $look = '';
     my $r = $Rooms[MyLoc];
 
     if (   ( $BitFlags & ( 1 << DARKBIT ) )
@@ -1240,45 +1241,44 @@ sub Look {
         && $Items[LIGHT_SOURCE]{Location} != MyLoc )
     {
         if ($SECOND_PERSON) {
-            say("You can't see. It is too dark!");
+            return ("You can't see. It is too dark!");
         }
         else {
-            say("I can't see. It is too dark!");
+            return ("I can't see. It is too dark!");
         }
-        return;
     }
 
-    if ( $r->{Text} eq '*' ) { # XXX ???
-        print( $Rooms[ MyLoc + 1 ]->{Text} );
+    if ( substr($r->{Text}, 0, 1) eq '*' ) { # XXX ???
+        $look .= $Rooms[ MyLoc + 1 ]->{Text}."\n";
     }
     else {
         if ($SECOND_PERSON) {
-            printf( "You are in a %s\n", $r->{Text} );
+            $look .= sprintf "You are in a %s\n", $r->{Text};
         }
         else {
-            printf( "I'm in a %s\n", $r->{Text} );
+            $look .= sprintf( "I'm in a %s\n", $r->{Text} );
         }
     }
 
     my $f = 0;
-    print("\nObvious exits: ");
+    $look .= "\nObvious exits:\n";
     foreach ( 0 .. 5 ) {
         if ( $r->{Exits}[$_] ) {
             if ( !$f ) {
                 $f = 1;
             }
             else {
-                print ", ";
+                $look .= ", ";
             }
-            print $ExitNames[$_];
+            $look .= $ExitNames[$_];
         }
     }
 
     if ( !$f ) {
-        say("none");
+        $look .= "none\n";
     }
     else {
-        print "\n\n";
+        $look .= "\n\n";
     }
 
     $f = 0;
@@ -1287,16 +1287,17 @@ sub Look {
     foreach my $i ( 0 .. $GameHeader{NumItems} ) {
         if ( $Items[$i]{Location} == MyLoc ) {
             if ( !$f ) {
-                print $SECOND_PERSON
-                  ? "You can also see: "
-                  : "I can also see: ";
+                $look .= $SECOND_PERSON
+                  ? "You can also see:\n"
+                  : "I can also see:\n";
                 $pos = 16;
                 $f++;
             }
             else {
-                print "\n";
+                $look .= "\n";
             }
-            print( $Items[$i]{Text} );
+            $look .= $Items[$i]{Text} ."\n";
         }
     }
+	return $look;
 }

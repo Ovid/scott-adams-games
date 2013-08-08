@@ -23,4 +23,17 @@ is ::MatchUpItem('ax', 10), 11,
 is ::MatchUpItem('sign', 3), -1,
 	'... but only if we can "GET" that item';
 
+my $expected_starting_look = <<'END';
+You are in a forest
+
+Obvious exits:
+North, South, East, West
+
+You can also see:
+Trees
+END
+
+is ::Look(), $expected_starting_look,
+	'... and our starting Look() should reveal the correct location';
+
 done_testing;
