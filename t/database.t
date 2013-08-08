@@ -1,4 +1,4 @@
-use Test::Most 'bail';
+use Test::Most;
 use FindBin;
 require "$FindBin::Bin/../bin/scott.pl";
 

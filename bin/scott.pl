@@ -25,6 +25,25 @@ our $DEBUGGING        = 0;    #	/* Info from database load */
 our $TRS80_STYLE      = 0;    #	/* Display in style used on TRS-80 */
 our $PREHISTORIC_LAMP = 1;    #	/* Destroy the lamp (very old databases) */
  
+our @Items;
+our @Rooms;
+our @Verbs;
+our @Nouns;
+our @Messages;
+#Action *Actions;
+our $LightRefill;
+#char NounText[16];
+#int Counters[16];    /* Range unknown */
+#int CurrentCounter;
+#int SavedRoom;
+#int RoomSaved[16];    /* Range unknown */
+#int DisplayUp;        /* Curses up */
+#WINDOW *Top,*Bottom;
+#int Redraw;        /* Update item window */
+our $Options = 0;   #     /* Option flags set */
+our $Width; #       /* Terminal width */
+our $TopHeight; #       /* Height of top window */
+our $BottomHeight; #   /* Height of bottom window */
 #     NumWords        /* Smaller of verb/noun is padded to same size */
 our %GameHeader = map { $_ => 0 } qw(
   Unknown1
@@ -58,32 +77,26 @@ our @Actions;
 #    short Unknown;
 #} Tail;
 #
-#sub strncasecmp {
-#    my ( $word1, $word2 ) = @_;
-#    return lc($word1) eq lc($word2);
-#}
-#sub getpid {$$}
-#
-#Tail GameTail;
-our @Items;
-our @Rooms;
-our @Verbs;
-our @Nouns;
-our @Messages;
-#Action *Actions;
-our $LightRefill;
-#char NounText[16];
-#int Counters[16];    /* Range unknown */
-#int CurrentCounter;
-#int SavedRoom;
-#int RoomSaved[16];    /* Range unknown */
-#int DisplayUp;        /* Curses up */
-#WINDOW *Top,*Bottom;
-#int Redraw;        /* Update item window */
-our $Options = 0;   #     /* Option flags set */
-our $Width; #       /* Terminal width */
-our $TopHeight; #       /* Height of top window */
-our $BottomHeight; #   /* Height of bottom window */
+sub strncasecmp {
+    my ( $word1, $word2, $length ) = @_;
+    return lc(substr $word1, 0, $length) eq lc(substr $word2, 0, $length);
+}
+
+sub MapSynonym {
+    my $word = shift;
+    my $lastword;
+
+    for my $i ( 0 .. $GameHeader{NumWords} ) {
+        my $curr_word = $Nouns[$i];
+        unless ( $curr_word =~ s/^\*// ) {
+            $lastword = $curr_word;
+        }
+        if ( strncasecmp( $curr_word, $word, $GameHeader{WordLength} ) ) {
+            return $lastword;
+        }
+    }
+    return;
+}
 #
 use constant TRS80_LINE =>
   "\n<------------------------------------------------------------>\n";
