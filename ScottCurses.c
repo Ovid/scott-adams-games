@@ -497,7 +497,7 @@ void Look()
     else
     {
         if(Options&YOUARE)
-            wprintw(Top,"You are %s\n",r->Text);
+            wprintw(Top,"You are in a %s\n",r->Text);
         else
             wprintw(Top,"I'm in a %s\n",r->Text);
     }
