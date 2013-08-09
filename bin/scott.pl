@@ -187,15 +187,6 @@ sub RandomPercent {
     return $rv < $n;
 }
 
-#int RandomPercent(int n)
-#{
-#    unsigned int rv=rand()<<6;
-#    rv%=100;
-#    if(rv<n)
-#        return(1);
-#    return(0);
-#}
-#
 sub CountCarried {
     my $num = 0;
     for my $ct ( 0 .. $GameHeader{NumItems} ) {
@@ -282,6 +273,7 @@ sub GetInput {
                 when ('i') { $verb = 'INVENTORY' }
             }
         }
+        $noun //= '';
         my $nc = WhichWord( $verb, \@Nouns );
         my $vc;
 
@@ -892,7 +884,6 @@ sub PerformActions {
                     }
                     return (0);
                 }
-                say "NounText is $NounText";
                 my $i = MatchUpItem( $NounText, MyLoc );
                 if ( not defined $i ) {
                     if ($SECOND_PERSON) {
