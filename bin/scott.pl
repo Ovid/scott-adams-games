@@ -74,13 +74,13 @@ our @Messages;
 our $LightRefill;
 our $NounText;
 
-#int Counters[16];    #  Range unknown
-#int CurrentCounter;
-#int SavedRoom;
-#int RoomSaved[16];    #  Range unknown
-#int DisplayUp;        #  Curses up
+my @Counters;    #  Range unknown
+my $CurrentCounter = 0;
+my $SavedRoom;
+my @RoomSaved;    #  Range unknown
+my $DisplayUp;        #  Curses up
 #WINDOW *Top,*Bottom;
-#int Redraw;        #  Update item window
+my $Redraw;        #  Update item window
 our $Options = 0;     #     #  Option flags set
 our $Width;           #       #  Terminal width
 our $TopHeight;       #       #  Height of top window
@@ -352,392 +352,362 @@ sub GetInput {
 #}
 #
 sub PerformLine {
-    say "PerformLine";
+    my $ct = shift;
+    my $continuation=0;
+    my ( @param,$pptr );
+    my @act;
+    my $cc=0;
+    while($cc<5)
+    {
+        my $cv = $Actions[$ct]{Condition}[$cc];
+        my $dv = $cv / 20;
+        $cv %= 20;
+        given ($cv) {
+            when (0) {
+                $param[ $pptr++ ] = $dv;
+            }
+            when (1) {
+                if ( $Items[$dv]{Location} != CARRIED ) { return (0); }
+            }
+            when (2) {
+                if ( $Items[$dv]{Location} != MyLoc ) { return (0); }
+            }
+            when (3) {
+                if ( $Items[$dv]{Location} != CARRIED && $Items[$dv]{Location} != MyLoc ) { return (0); }
+            }
+            when (4) {
+                if ( MyLoc != $dv ) { return (0); }
+            }
+            when (5) {
+                if ( $Items[$dv]{Location} == MyLoc ) { return (0); }
+            }
+            when (6) {
+                if ( $Items[$dv]{Location} == CARRIED ) { return (0); }
+            }
+            when (7) {
+                if ( MyLoc == $dv ) { return (0); }
+            }
+            when (8) {
+                if ( ( $BitFlags & ( 1 << $dv ) ) == 0 ) { return (0); }
+            }
+            when (9) {
+                if ( $BitFlags & ( 1 << $dv ) ) { return (0); }
+            }
+            when (10) {
+                if ( CountCarried() == 0 ) { return (0); }
+            }
+            when (11) {
+                if ( CountCarried() ) { return (0); }
+            }
+            when (12) {
+                if ( $Items[$dv]{Location} == CARRIED || $Items[$dv]{Location} == MyLoc ) { return (0); }
+            }
+            when (13) {
+                if ( $Items[$dv]{Location} == 0 ) { return (0); }
+            }
+            when (14) {
+                if ( $Items[$dv]{Location} ) { return (0); }
+            }
+            when (15) {
+                if ( $CurrentCounter > $dv ) { return (0); }
+            }
+            when (16) {
+                if ( $CurrentCounter <= $dv ) { return (0); }
+            }
+            when (17) {
+                if ( $Items[$dv]{Location} != $Items[$dv]{InitialLoc} ) { return (0); }
+            }
+            when (18) {
+                if ( $Items[$dv]{Location} == $Items[$dv]{InitialLoc} ) { return (0); }
+            }
+            when (19) {    #  Only seen in Brian Howarth games so far
+                if ( $CurrentCounter != $dv ) { return (0); }
+            }
+        }
+        $cc++;
+    }
+#    #  Actions
+    $act[0] = $Actions[$ct]{Action}[0];
+    $act[2] = $Actions[$ct]{Action}[1];
+    $act[1] = $act[0] % 150;
+    $act[3] = $act[2] % 150;
+    $act[0] /= 150;
+    $act[2] /= 150;
+    $cc   = 0;
+    $pptr = 0;
+    while($cc<4)
+    {
+        if($act[$cc]>=1 && $act[$cc]<52)
+        {
+            say(Messages[$act[$cc]]);
+            say("\n");
+        }
+        elsif($act[$cc]>101)
+        {
+            say(Messages[$act[$cc]-50]);
+            say("\n");
+        }
+        else {
+            given($act[$cc])
+        {
+            when (0) {#  NOP
+            }
+            when (52) {
+                if(CountCarried()==$GameHeader{MaxCarry})
+                {
+                    if($SECOND_PERSON)
+{                        say("You are carrying too much. ");}
+                    else
+{                        say("I've too much to carry! ");}
+                }
+                }
+                if($Items[$param[$pptr]]{Location}==MyLoc)
+{                    $Redraw=1;}
+                $Items[$param[$pptr++]]{Location}= CARRIED;
+            }
+            when (53) {
+                $Redraw=1;
+                $Items[$param[$pptr++]]{Location}=MyLoc;
+            }
+            when (54) {
+                $Redraw=1;
+                $GameHeader{PlayerRoom} =$param[$pptr++];
+            }
+            when (55) {
+                if($Items[$param[$pptr]]{Location}==MyLoc)
+{                    $Redraw=1;}
+                $Items[$param[$pptr++]]{Location}=0;
+            }
+            when (56) {
+                $BitFlags|=1<<DARKBIT;
+            }
+            when (57) {
+                $BitFlags&=~(1<<DARKBIT);
+            }
+            when (58) {
+                $BitFlags|=(1<<$param[$pptr++]);
+            }
+            when (59) {
+                if($Items[$param[$pptr]]{Location}==MyLoc)
+{                    $Redraw=1;}
+                $Items[$param[$pptr++]]{Location}=0;
+            }
+            when (60) {
+                $BitFlags&=~(1<<$param[$pptr++]);
+            }
+            when (61) {
+                if($SECOND_PERSON)
+{                    say("You are dead.\n");}
+                else
+{                    say("I am dead.\n");}
+                $BitFlags&=~(1<<DARKBIT);
+                $GameHeader{PlayerRoom} = $GameHeader{NumRooms};    #  It seems to be what the code says!
+                say Look();
+            }
+            when (62) {
+            {
+                #  Bug fix for some systems - before it could get parameters wrong
+                my $i=$param[$pptr++];
+                $Items[$i]{Location}=$param[$pptr++];
+                $Redraw=1;
+            }
+            }
+            when (63) {
+doneit:                say("The game is now over.\n");
+                #wrefresh(Bottom);
+                sleep(5);
+                #endwin();
+                exit(0);
+            when (64) {
+                say Look();
+            }
+            when (65) {
+            {
+                my $ct=0;
+                my $n=0;
+                while($ct<=$GameHeader{NumItems})
+                {
+                    if($Items[$ct]{Location}==$GameHeader{TreasureRoom} &&
+                      $Items[$ct]{Text}=~/^\*/)
+{                          $n++;}
+                    $ct++;
+                }
+                if($SECOND_PERSON)
+{                    say("You have stored ");}
+                else
+{                    say("I've stored ");}
+                say("$n treasures.  On a scale of 0 to 100, that rates ");
+                say(($n*100)/$GameHeader{Treasures});
+                if($n==$GameHeader{Treasures})
+                {
+                    say("Well done.\n");
+                    goto doneit;
+                }
+            }
+            }
+            when (66) {
+            {
+                my $ct=0;
+                my $f=0;
+                if($SECOND_PERSON)
+{                    say("You are carrying:\n");}
+                else
+{                    say("I'm carrying:\n");}
+                while($ct<=$GameHeader{NumItems})
+                {
+                    if($Items[$ct]{Location}==CARRIED)
+                    {
+                        if($f==1)
+                        {
+                            if ($TRS80_STYLE) {
+                                say(". "); }
+                            else {
+                                say(" - "); }
+                        }
+                        $f=1;
+                        say($Items[$ct]{Text});
+                    }
+                    $ct++;
+                }
+                if($f==0)
+{                    say("Nothing");}
+            }
+            }
+            when (67) {
+                $BitFlags|=(1<<0);
+            }
+            when (68) {
+                $BitFlags&=~(1<<0);
+            }
+            when (69) {
+                $GameHeader{LightTime}=$LightRefill;
+                if($Items[LIGHT_SOURCE]{Location}==MyLoc)
+                  {  $Redraw=1; }
+                $Items[LIGHT_SOURCE]{Location}=CARRIED;
+                $BitFlags&=~(1<<LIGHTOUTBIT);
+            }
+            when (70) {
+                #ClearScreen(); #  pdd.
+                #OutReset();
+            }
+            when (71) {
+                SaveGame();
+            }
+            when (72) {
+            {
+                my $i1=$param[$pptr++];
+                my $i2=$param[$pptr++];
+                my $t=$Items[$i1]{Location};
+                if($t==MyLoc || $Items[$i2]{Location}==MyLoc)
+{                    $Redraw=1;}
+                $Items[$i1]{Location}=$Items[$i2]{Location};
+                $Items[$i2]{Location}=$t;
+            }
+            }
+            when (73) {
+                $continuation=1;
+            }
+            when (74) {
+                if($Items[$param[$pptr]]{Location}==MyLoc)
+{                    $Redraw=1;}
+                $Items[$param[$pptr++]]{Location}= CARRIED;
+            }
+            when (75) {
+            {
+                my $i1=$param[$pptr++];
+                my $i2=$param[$pptr++];
+                if($Items[$i1]{Location}==MyLoc)
+{                    $Redraw=1;}
+                $Items[$i1]{Location}=$Items[$i2]{Location};
+                if($Items[$i2]{Location}==MyLoc)
+{                    $Redraw=1;}
+            }
+            }
+            when (76) {    #  Looking at adventure ..
+                say Look();
+            }
+            when (77) {
+                if($CurrentCounter>=0)
+{                    $CurrentCounter--;}
+            }
+            when (78) {
+                say($CurrentCounter);
+            }
+            when (79) {
+                $CurrentCounter=$param[$pptr++];
+            }
+            when (80) {
+            {
+                my $t=MyLoc;
+                $GameHeader{PlayerRoom}=$SavedRoom;
+                $SavedRoom=$t;
+                $Redraw=1;
+            }
+            }
+            when (81) {
+            {
+                # This is somewhat guessed. Claymorgue always
+                # seems to do select counter n, thing, select counter n,
+                # but uses one value that always seems to exist. Trying
+                # a few options I found this gave sane results on ageing
+                my $t=$param[$pptr++];
+                my $c1=$CurrentCounter;
+                $CurrentCounter=$Counters[$t];
+                $Counters[$t]=$c1;
+            }
+            }
+            when (82) {
+                $CurrentCounter+=$param[$pptr++];
+            }
+            when (83) {
+                $CurrentCounter-=$param[$pptr++];
+                if($CurrentCounter< -1)
+{                    $CurrentCounter= -1;}
+                # Note: This seems to be needed. I don't yet
+                # know if there is a maximum value to limit too
+            }
+            when (84) {
+                say($NounText);
+            }
+            when (85) {
+                say($NounText);
+                say("\n");
+            }
+            when (86) {
+                say("\n");
+            }
+            when (87) {
+            {
+                # Changed this to swap location<->roomflag[x]
+                # not roomflag 0 and x
+                my $p=$param[$pptr++];
+                my $sr=MyLoc;
+                $GameHeader{PlayerRoom} = $RoomSaved[$p];
+                $RoomSaved[$p]=$sr;
+                $Redraw=1;
+            }
+            }
+            when (88) {
+                #wrefresh(Top);
+                #wrefresh(Bottom);
+                sleep(2);    #  DOC's say 2 seconds. Spectrum times at 1.5
+            }
+            when (89) {
+                $pptr++;
+                #  SAGA draw picture n
+                #  Spectrum Seas of Blood - start combat ?
+                #  Poking this into older spectrum games causes a crash
+            }
+            default:
+                warn(sprintf "Unknown action %d [Param begins %d %d]\n",
+                    $act[$cc],$param[$pptr],$param[$pptr+1]);
+            }
+        }
+        $cc++;
+    }
+    return(1+$continuation);
 }
 
-#int PerformLine(int ct)
-#{
-#    int continuation=0;
-#    int param[5],pptr=0;
-#    int act[4];
-#    int cc=0;
-#    while(cc<5)
-#    {
-#        int cv,dv;
-#        cv=$Actions[$ct]{Condition}[cc];
-#        dv=cv/20;
-#        cv%=20;
-#        switch(cv)
-#        {
-#            case 0:
-#                param[pptr++]=dv;
-#                break;
-#            case 1:
-#                if($Items[$dv]{Location}!=CARRIED)
-#                    return(0);
-#                break;
-#            case 2:
-#                if($Items[$dv]{Location}!=MyLoc)
-#                    return(0);
-#                break;
-#            case 3:
-#                if($Items[$dv]{Location}!=CARRIED&&
-#                    $Items[$dv]{Location}!=MyLoc)
-#                    return(0);
-#                break;
-#            case 4:
-#                if(MyLoc!=dv)
-#                    return(0);
-#                break;
-#            case 5:
-#                if($Items[$dv]{Location}==MyLoc)
-#                    return(0);
-#                break;
-#            case 6:
-#                if($Items[$dv]{Location}==CARRIED)
-#                    return(0);
-#                break;
-#            case 7:
-#                if(MyLoc==dv)
-#                    return(0);
-#                break;
-#            case 8:
-#                if((BitFlags&(1<<dv))==0)
-#                    return(0);
-#                break;
-#            case 9:
-#                if(BitFlags&(1<<dv))
-#                    return(0);
-#                break;
-#            case 10:
-#                if(CountCarried()==0)
-#                    return(0);
-#                break;
-#            case 11:
-#                if(CountCarried())
-#                    return(0);
-#                break;
-#            case 12:
-#                if($Items[$dv]{Location}==CARRIED||$Items[$dv]{Location}==MyLoc)
-#                    return(0);
-#                break;
-#            case 13:
-#                if($Items[$dv]{Location}==0)
-#                    return(0);
-#                break;
-#            case 14:
-#                if($Items[$dv]{Location})
-#                    return(0);
-#                break;
-#            case 15:
-#                if(CurrentCounter>dv)
-#                    return(0);
-#                break;
-#            case 16:
-#                if(CurrentCounter<=dv)
-#                    return(0);
-#                break;
-#            case 17:
-#                if($Items[$dv]{Location}!=$Items[$dv]{InitialLoc})
-#                    return(0);
-#                break;
-#            case 18:
-#                if($Items[$dv]{Location}==$Items[$dv]{InitialLoc})
-#                    return(0);
-#                break;
-#            case 19:#  Only seen in Brian Howarth games so far
-#                if(CurrentCounter!=dv)
-#                    return(0);
-#                break;
-#        }
-#        cc++;
-#    }
-#    #  Actions
-#    act[0]=$Actions[$ct]{Action}[0];
-#    act[2]=$Actions[$ct]{Action}[1];
-#    act[1]=act[0]%150;
-#    act[3]=act[2]%150;
-#    act[0]/=150;
-#    act[2]/=150;
-#    cc=0;
-#    pptr=0;
-#    while(cc<4)
-#    {
-#        if(act[cc]>=1 && act[cc]<52)
-#        {
-#            say(Messages[act[cc]]);
-#            say("\n");
-#        }
-#        else if(act[cc]>101)
-#        {
-#            say(Messages[act[cc]-50]);
-#            say("\n");
-#        }
-#        else switch(act[cc])
-#        {
-#            case 0:#  NOP
-#                break;
-#            case 52:
-#                if(CountCarried()==$GameHeader{MaxCarry})
-#                {
-#                    if($SECOND_PERSON)
-#                        say("You are carrying too much. ");
-#                    else
-#                        say("I've too much to carry! ");
-#                    break;
-#                }
-#                if(Items[param[pptr]].Location==MyLoc)
-#                    Redraw=1;
-#                Items[param[pptr++]].Location= CARRIED;
-#                break;
-#            case 53:
-#                Redraw=1;
-#                Items[param[pptr++]].Location=MyLoc;
-#                break;
-#            case 54:
-#                Redraw=1;
-#                MyLoc=param[pptr++];
-#                break;
-#            case 55:
-#                if(Items[param[pptr]].Location==MyLoc)
-#                    Redraw=1;
-#                Items[param[pptr++]].Location=0;
-#                break;
-#            case 56:
-#                BitFlags|=1<<DARKBIT;
-#                break;
-#            case 57:
-#                BitFlags&=~(1<<DARKBIT);
-#                break;
-#            case 58:
-#                BitFlags|=(1<<param[pptr++]);
-#                break;
-#            case 59:
-#                if(Items[param[pptr]].Location==MyLoc)
-#                    Redraw=1;
-#                Items[param[pptr++]].Location=0;
-#                break;
-#            case 60:
-#                BitFlags&=~(1<<param[pptr++]);
-#                break;
-#            case 61:
-#                if($SECOND_PERSON)
-#                    say("You are dead.\n");
-#                else
-#                    say("I am dead.\n");
-#                BitFlags&=~(1<<DARKBIT);
-#                MyLoc=$GameHeader{NumRooms};#  It seems to be what the code says!
-#                say Look();
-#                break;
-#            case 62:
-#            {
-#                #  Bug fix for some systems - before it could get parameters wrong
-#                int i=param[pptr++];
-#                $Items[$i]{Location}=param[pptr++];
-#                Redraw=1;
-#                break;
-#            }
-#            case 63:
-#doneit:                say("The game is now over.\n");
-#                wrefresh(Bottom);
-#                sleep(5);
-#                endwin();
-#                exit(0);
-#            case 64:
-#                say Look();
-#                break;
-#            case 65:
-#            {
-#                int ct=0;
-#                int n=0;
-#                while(ct<=$GameHeader{NumItems})
-#                {
-#                    if($Items[$ct]{Location}==$GameHeader{TreasureRoom} &&
-#                      *$Items[$ct]{Text}=='*')
-#                          n++;
-#                    ct++;
-#                }
-#                if($SECOND_PERSON)
-#                    say("You have stored ");
-#                else
-#                    say("I've stored ");
-#                sayNumber(n);
-#                say(" treasures.  On a scale of 0 to 100, that rates ");
-#                sayNumber((n*100)/$GameHeader{Treasures});
-#                say(".\n");
-#                if(n==$GameHeader{Treasures})
-#                {
-#                    say("Well done.\n");
-#                    goto doneit;
-#                }
-#                break;
-#            }
-#            case 66:
-#            {
-#                int ct=0;
-#                int f=0;
-#                if($SECOND_PERSON)
-#                    say("You are carrying:\n");
-#                else
-#                    say("I'm carrying:\n");
-#                while(ct<=$GameHeader{NumItems})
-#                {
-#                    if($Items[$ct]{Location}==CARRIED)
-#                    {
-#                        if(f==1)
-#                        {
-#                            if ($TRS80_STYLE)
-#                                say(". ");
-#                            else
-#                                say(" - ");
-#                        }
-#                        f=1;
-#                        say($Items[$ct]{Text});
-#                    }
-#                    ct++;
-#                }
-#                if(f==0)
-#                    say("Nothing");
-#                say(".\n");
-#                break;
-#            }
-#            case 67:
-#                BitFlags|=(1<<0);
-#                break;
-#            case 68:
-#                BitFlags&=~(1<<0);
-#                break;
-#            case 69:
-#                $GameHeader{LightTime}=LightRefill;
-#                if($Items[LIGHT_SOURCE]{Location}==MyLoc)
-#                    Redraw=1;
-#                $Items[LIGHT_SOURCE]{Location}=CARRIED;
-#                BitFlags&=~(1<<LIGHTOUTBIT);
-#                break;
-#            case 70:
-#                ClearScreen(); #  pdd.
-#                OutReset();
-#                break;
-#            case 71:
-#                SaveGame();
-#                break;
-#            case 72:
-#            {
-#                int i1=param[pptr++];
-#                int i2=param[pptr++];
-#                int t=$Items[$i1]{Location};
-#                if(t==MyLoc || $Items[$i2]{Location}==MyLoc)
-#                    Redraw=1;
-#                $Items[$i1]{Location}=$Items[$i2]{Location};
-#                $Items[$i2]{Location}=t;
-#                break;
-#            }
-#            case 73:
-#                continuation=1;
-#                break;
-#            case 74:
-#                if(Items[param[pptr]].Location==MyLoc)
-#                    Redraw=1;
-#                Items[param[pptr++]].Location= CARRIED;
-#                break;
-#            case 75:
-#            {
-#                int i1,i2;
-#                i1=param[pptr++];
-#                i2=param[pptr++];
-#                if($Items[$i1]{Location}==MyLoc)
-#                    Redraw=1;
-#                $Items[$i1]{Location}=$Items[$i2]{Location};
-#                if($Items[$i2]{Location}==MyLoc)
-#                    Redraw=1;
-#                break;
-#            }
-#            case 76:    #  Looking at adventure ..
-#                say Look();
-#                break;
-#            case 77:
-#                if(CurrentCounter>=0)
-#                    CurrentCounter--;
-#                break;
-#            case 78:
-#                sayNumber(CurrentCounter);
-#                break;
-#            case 79:
-#                CurrentCounter=param[pptr++];
-#                break;
-#            case 80:
-#            {
-#                int t=MyLoc;
-#                MyLoc=SavedRoom;
-#                SavedRoom=t;
-#                Redraw=1;
-#                break;
-#            }
-#            case 81:
-#            {
-#                /* This is somewhat guessed. Claymorgue always
-#                   seems to do select counter n, thing, select counter n,
-#                   but uses one value that always seems to exist. Trying
-#                   a few options I found this gave sane results on ageing */
-#                int t=param[pptr++];
-#                int c1=CurrentCounter;
-#                CurrentCounter=Counters[t];
-#                Counters[t]=c1;
-#                break;
-#            }
-#            case 82:
-#                CurrentCounter+=param[pptr++];
-#                break;
-#            case 83:
-#                CurrentCounter-=param[pptr++];
-#                if(CurrentCounter< -1)
-#                    CurrentCounter= -1;
-#                /* Note: This seems to be needed. I don't yet
-#                   know if there is a maximum value to limit too */
-#                break;
-#            case 84:
-#                say(NounText);
-#                break;
-#            case 85:
-#                say(NounText);
-#                say("\n");
-#                break;
-#            case 86:
-#                say("\n");
-#                break;
-#            case 87:
-#            {
-#                /* Changed this to swap location<->roomflag[x]
-#                   not roomflag 0 and x */
-#                int p=param[pptr++];
-#                int sr=MyLoc;
-#                MyLoc=RoomSaved[p];
-#                RoomSaved[p]=sr;
-#                Redraw=1;
-#                break;
-#            }
-#            case 88:
-#                wrefresh(Top);
-#                wrefresh(Bottom);
-#                sleep(2);    #  DOC's say 2 seconds. Spectrum times at 1.5
-#                break;
-#            case 89:
-#                pptr++;
-#                #  SAGA draw picture n
-#                #  Spectrum Seas of Blood - start combat ?
-#                #  Poking this into older spectrum games causes a crash
-#                break;
-#            default:
-#                fprintf(stderr,"Unknown action %d [Param begins %d %d]\n",
-#                    act[cc],param[pptr],param[pptr+1]);
-#                break;
-#        }
-#        cc++;
-#    }
-#    return(1+continuation);
-#}
-#
-#
 sub PerformActions {
     my ( $vb, $no ) = @_;
 
