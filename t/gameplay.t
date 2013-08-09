@@ -13,8 +13,6 @@ my %VERBS = _get_verbs();
 
 sub is_similar($$;$);
 sub look      { Look() }
-sub set_all   { $::NounText = 'ALL' }
-sub unset_all { $::NounText = '' }
 
 #
 # Actual start of tests
@@ -60,14 +58,38 @@ You can also see:
   - Sign says `No swimming allowed here`
 END
 
-is_similar doit(qw/take all/), <<'END', 'take all';
-Fish: O.K.
-Rusty axe (Magic word `BUNYON` on it): O.K.
+subtest 'take/drop' => sub {
+    is_similar doit(qw/take all/), <<'END', 'take all';
+    Fish: O.K.
+    Rusty axe (Magic word `BUNYON` on it): O.K.
 END
 
-$look = look;
-unlike $look, qr/Fish/, 'The scene should no longer describe the fish we took';
-unlike $look, qr/Rusty axe/, '... or the axe';
+    my $look = look;
+    unlike $look, qr/Fish/, 'The scene should no longer describe the fish we took';
+    unlike $look, qr/Rusty axe/, '... or the axe';
+
+    is_similar doit(qw/drop all/), <<'END', 'drop all';
+    Fish: O.K.
+    Rusty axe (Magic word `BUNYON` on it): O.K.
+END
+
+    $look = look;
+    like $look, qr/Fish/, 'The scene should now describe the fish we dropped';
+    like $look, qr/Rusty axe/, '... and the axe';
+
+$ENV{DEBUG} = 1;
+    is_similar doit(qw/take fish/), 'O.K.', 'take fish';
+
+    $look = look;
+    unlike $look, qr/Fish/, 'The scene should no longer describe the fish we took';
+    like $look, qr/Rusty axe/, '... but the axe should still be there';
+
+    is_similar doit(qw/drop fish/), 'O.K.', 'drop fish';
+
+    $look = look;
+    like $look, qr/Fish/, 'The scene should now describe the fish we dropped';
+    like $look, qr/Rusty axe/, '... and the axe';
+};
 
 done_testing;
 
@@ -89,23 +111,20 @@ sub doit {
     unless ( exists $VERBS{$verb} ) {
         croak("Unknown verb: $verb");
     }
-    if ( 'all' eq ( lc $noun // '' ) ) {
-        set_all;
-    }
-    elsif ( $noun && !exists $NOUNS{$noun}) {
+    $::NounText = $noun // '';
+    if ( $noun && 'all' ne lc($noun) && !exists $NOUNS{$noun}) {
         croak("Unknown noun: $noun");
     }
 
     my $output = capture_stdout{
         PerformActions($VERBS{$verb}, $NOUNS{$noun});
     };
-    unset_all;
     return $output;
 }
 
 sub _get_nouns {
     my %nouns;
-    my @nouns = qw(north south east west up down ax);
+    my @nouns = qw(north south east west up down ax fish);
     foreach (@nouns) {
         no warnings 'once';
         $nouns{$_} = WhichWord( $_, \@::Nouns ) or fail "Bad noun: $_";
