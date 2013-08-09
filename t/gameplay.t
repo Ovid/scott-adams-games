@@ -111,7 +111,10 @@ sub doit {
     unless ( exists $VERBS{$verb} ) {
         croak("Unknown verb: $verb");
     }
-    $::NounText = $noun // '';
+    {
+        no warnings 'once';
+        $::NounText = $noun // '';
+    }
     if ( $noun && 'all' ne lc($noun) && !exists $NOUNS{$noun}) {
         croak("Unknown noun: $noun");
     }
