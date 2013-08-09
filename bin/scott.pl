@@ -805,7 +805,7 @@ sub PerformActions {
         if ( ( $vv == $vb ) || ( $doagain && $Actions[$ct]{Vocab} == 0 ) ) {
             if (   ( $vv == 0 && RandomPercent($nv) )
                 || $doagain
-                || ( $vv != 0 && ( $nv == ($no//-666) || $nv == 0 ) ) )
+                || ( $vv != 0 && ( $nv == ( $no // -666 ) || $nv == 0 ) ) )
             {
                 my $f2;
                 if ( $fl == -1 ) { $fl = -2 }
