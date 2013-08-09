@@ -899,7 +899,7 @@ sub PerformActions {
                 return (0);
             }
             if ( $vb == DROP ) {
-                if ( strcasecmp( $NounText, "ALL" ) ) {
+                if ( strncasecmp( $NounText, "ALL", $GameHeader{WordLength} ) ) {
                     my $f = 0;
                     foreach my $ct ( 0 .. $GameHeader{NumItems} ) {
                         if (   $Items[$ct]{Location} == CARRIED
@@ -911,12 +911,12 @@ sub PerformActions {
                             PerformActions( $vb, $no );
                             $disable_sysfunc = 0;
                             $Items[$ct]{Location} = MyLoc;
-                            say( $Items[$ct]{Text} .": O.K.\n");
+                            say( $Items[$ct]{Text} . ": O.K.\n" );
                             $f = 1;
                         }
-                        if ( $f == 0 ) {
-                            say("Nothing dropped.\n");
-                        }
+                    }
+                    if ( $f == 0 ) {
+                        say("Nothing dropped.\n");
                     }
                     return (0);
                 }
