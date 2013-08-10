@@ -454,62 +454,62 @@ sub PerformLine {
                         if   ($SECOND_PERSON) { say("You are carrying too much. "); }
                         else                  { say("I've too much to carry! "); }
                     }
+                    if ( $Items[ $param[$pptr] ]{Location} == MyLoc ) { $Redraw = 1; }
+                    $Items[ $param[ $pptr++ ] ]{Location} = CARRIED;
                 }
-                if ( $Items[ $param[$pptr] ]{Location} == MyLoc ) { $Redraw = 1; }
-                $Items[ $param[ $pptr++ ] ]{Location} = CARRIED;
-            }
-            when (53) {
-                $Redraw = 1;
-                $Items[ $param[ $pptr++ ] ]{Location} = MyLoc;
-            }
-            when (54) {
-                $Redraw = 1;
-                $GameHeader{PlayerRoom} = $param[ $pptr++ ];
-            }
-            when (55) {
-                if ( $Items[ $param[$pptr] ]{Location} == MyLoc ) { $Redraw = 1; }
-                $Items[ $param[ $pptr++ ] ]{Location} = 0;
-            }
-            when (56) {
-                $BitFlags |= 1 << DARKBIT;
-            }
-            when (57) {
-                $BitFlags &= ~( 1 << DARKBIT );
-            }
-            when (58) {
-                $BitFlags |= ( 1 << $param[ $pptr++ ] );
-            }
-            when (59) {
-                if ( $Items[ $param[$pptr] ]{Location} == MyLoc ) { $Redraw = 1; }
-                $Items[ $param[ $pptr++ ] ]{Location} = 0;
-            }
-            when (60) {
-                $BitFlags &= ~( 1 << $param[ $pptr++ ] );
-            }
-            when (61) {
-                if   ($SECOND_PERSON) { say("You are dead.\n"); }
-                else                  { say("I am dead.\n"); }
-                $BitFlags &= ~( 1 << DARKBIT );
-                $GameHeader{PlayerRoom} = $GameHeader{NumRooms};    #  It seems to be what the code says!
-                say Look();
-            }
-            when (62) {
-                {
-
-                    #  Bug fix for some systems - before it could get parameters wrong
-                    my $i = $param[ $pptr++ ];
-                    $Items[$i]{Location} = $param[ $pptr++ ];
+                when (53) {
                     $Redraw = 1;
+                    $Items[ $param[ $pptr++ ] ]{Location} = MyLoc;
                 }
-            }
-            when (63) {
-                doneit: say("The game is now over.\n");
+                when (54) {
+                    $Redraw = 1;
+                    $GameHeader{PlayerRoom} = $param[ $pptr++ ];
+                }
+                when (55) {
+                    if ( $Items[ $param[$pptr] ]{Location} == MyLoc ) { $Redraw = 1; }
+                    $Items[ $param[ $pptr++ ] ]{Location} = 0;
+                }
+                when (56) {
+                    $BitFlags |= 1 << DARKBIT;
+                }
+                when (57) {
+                    $BitFlags &= ~( 1 << DARKBIT );
+                }
+                when (58) {
+                    $BitFlags |= ( 1 << $param[ $pptr++ ] );
+                }
+                when (59) {
+                    if ( $Items[ $param[$pptr] ]{Location} == MyLoc ) { $Redraw = 1; }
+                    $Items[ $param[ $pptr++ ] ]{Location} = 0;
+                }
+                when (60) {
+                    $BitFlags &= ~( 1 << $param[ $pptr++ ] );
+                }
+                when (61) {
+                    if   ($SECOND_PERSON) { say("You are dead.\n"); }
+                    else                  { say("I am dead.\n"); }
+                    $BitFlags &= ~( 1 << DARKBIT );
+                    $GameHeader{PlayerRoom} = $GameHeader{NumRooms};    #  It seems to be what the code says!
+                    say Look();
+                }
+                when (62) {
+                    {
 
-                #wrefresh(Bottom);
-                sleep(5);
+                        #  Bug fix for some systems - before it could get parameters wrong
+                        my $i = $param[ $pptr++ ];
+                        $Items[$i]{Location} = $param[ $pptr++ ];
+                        $Redraw = 1;
+                    }
+                }
+                when (63) {
+                    doneit: say("The game is now over.\n");
 
-                #endwin();
-                exit(0);
+                    #wrefresh(Bottom);
+                    sleep(5);
+
+                    #endwin();
+                    exit(0);
+                }
                 when (64) {
                     say Look();
                 }
