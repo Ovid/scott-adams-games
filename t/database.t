@@ -436,9 +436,97 @@ eq_or_diff \@::Items, $expected_items,
 is @::Items, $::GameHeader{NumItems}+1,
 	'... and the number of items should be correct';
 
-for ( 0 .. $#$expected_nouns ) {
-    next if $expected_nouns->[$_] =~ /^\*/;
-    print "use constant $expected_nouns->[$_] => $_;\n";
-}
+my $expected_messages = [
+   '',
+   'Nothing happens',
+   'Chop \'er down!',
+   'BOY that really hit the spot!',
+   'Dragon smells something. Awakens & attacks me!',
+   'Lock shatters',
+   'I can\'t its locked',
+   'TIMBER. Something fell from the tree top & vanished in the swamp',
+   'TIMBER!',
+   'Maybe I should read it?',
+   '.',
+   'I\'m bit by a spider',
+   "My chigger bites are now INFECTED!\n",
+   'My bites have rotted my whole body!',
+   '.',
+   '.',
+   'First I need an empty container.',
+   '.',
+   'Something I\'m holding vibrates and...',
+   'nothing to light it with',
+   '.',
+   'in my hands!',
+   'gas needs to be contained before it will burn',
+   'Gas dissipates. (I think you blew it)',
+   'That won\'t ignite',
+   'How?',
+   '.',
+   '.',
+   '.',
+   'It soaks into the ground',
+   'In 2 words tell me at what...like: AT TREE',
+   '.',
+   'Its heavy!',
+   'Somethings too heavy. I fall.',
+   'To stop game say QUIT',
+   '.',
+   '.',
+   'You lost *ALL* treasures.',
+   'I\'m not carrying ax, take inventory!',
+   'It doesn\'t seem to bother him at all!',
+   'The mud dried up and fell off.',
+   '.',
+   '.',
+   '.',
+   '.',
+   "I'm bitten by chiggers.\n",
+   'There\'s something there all right! Maybe I should go there?',
+   'Maybe if I threw something?...',
+   'Too dry, the fish died.',
+   '.',
+   "Purchase a copy of `ADVENTURELAND` from your favorite dealer\ntoday!\n",
+   'No, its too hot.',
+   'Not here.',
+   'Try the swamp',
+   'Sizzle...',
+   'Try --> `LOOK, JUMP, SWIM, CLIMB, FIND, TAKE, SCORE, DROP`
+and any other verbs you can think of...',
+   'There are only 3 ways to wake the Dragon!',
+   'Remember you can always say `HELP`',
+   'Read the sign in the meadow!',
+   'You may need to say magic words here',
+   'A voice BOOOOMS out:',
+   'please leave it alone',
+   'Sorry, I can only throw the ax.',
+   'Medicine is good for bites.',
+   'I don\'t know where it is',
+   'Welcome to Adventure International\'s Mini-Adventure Sampler!
+This is a small but complete Adventure. You must find the 3
+hidden Treasures and store them away! Say: `score` to see
+how well you\'re doing!
+',
+   'Blow it up!',
+   'Fish have escaped back to the lake.',
+   'OK',
+   'Huh? I don\'t think so!',
+   'You might try examining things...',
+   'What?',
+   'OK, I threw it.',
+   'This Mini-Adventure is but a small sample of what awaits you in
+our Classic: ADVENTURELAND, which contains an additional 10
+treasures, magic carpets, killer bees, burning lava and much
+much more!
+',
+   'The ax vibrated!',
+   'I see nothing special'
+];
+
+eq_or_diff \@::Messages, $expected_messages,
+    'The messages read should be correct';
+is @::Messages, $::GameHeader{NumMessages}+1,
+	'... and the number of messages should be correct';
 
 done_testing;
