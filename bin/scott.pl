@@ -949,46 +949,44 @@ END
             when (-2) { say("I can't do that yet. ") }
         }
 
-        #        #  Brian Howarth games seem to use -1 for forever
-        #        if($Items[LIGHT_SOURCE]{Location}# ==-1!=DESTROYED && $GameHeader{LightTime}!= -1)
-        #        {
-        #            $GameHeader{LightTime}--;
-        #            if($GameHeader{LightTime}<1)
-        #            {
-        #                BitFlags|=(1<<LIGHTOUTBIT);
-        #                if($Items[LIGHT_SOURCE]{Location}==CARRIED ||
-        #                    $Items[LIGHT_SOURCE]{Location}==MyLoc)
-        #                {
-        #                    if($SCOTTLIGHT)
-        #                        say("Light has run out! ");
-        #                    else
-        #                        say("Your light has run out. ");
-        #                }
-        #                if(Options&PREHISTORIC_LAMP)
-        #                    $Items[LIGHT_SOURCE]{Location}=DESTROYED;
-        #            }
-        #            else if($GameHeader{LightTime}<25)
-        #            {
-        #                if($Items[LIGHT_SOURCE]{Location}==CARRIED ||
-        #                    $Items[LIGHT_SOURCE]{Location}==MyLoc)
-        #                {
-        #
-        #                    if($SCOTTLIGHT)
-        #                    {
-        #                        say("Light runs out in ");
-        #                        sayNumber($GameHeader{LightTime});
-        #                        say(" turns. ");
-        #                    }
-        #                    else
-        #                    {
-        #                        if($GameHeader{LightTime}%5==0)
-        #                            say("Your light is growing dim. ");
-        #                    }
-        #                }
-        #            }
-        #        }
+        #  Brian Howarth games seem to use -1 for forever
+        if ( $Items[LIGHT_SOURCE]{Location} != DESTROYED && $GameHeader{LightTime} != -1 ) {
+            $GameHeader{LightTime}--;
+            if ( $GameHeader{LightTime} < 1 ) {
+                $BitFlags |= ( 1 << LIGHTOUTBIT );
+                if (   $Items[LIGHT_SOURCE]{Location} == CARRIED
+                    || $Items[LIGHT_SOURCE]{Location} == MyLoc )
+                {
+                    if ($SCOTTLIGHT) {
+                        say("Light has run out! ");
+                    }
+                    else {
+                        say("Your light has run out. ");
+                    }
+                }
+                if ( $Options &$PREHISTORIC_LAMP ) {
+                    $Items[LIGHT_SOURCE]{Location} = DESTROYED;
+                }
+            }
+            elsif ( $GameHeader{LightTime} < 25 ) {
+                if (   $Items[LIGHT_SOURCE]{Location} == CARRIED
+                    || $Items[LIGHT_SOURCE]{Location} == MyLoc )
+                {
+
+                    if ($SCOTTLIGHT) {
+                        say("Light runs out in $GameHeader{LightTime} turns");
+                    }
+                    else {
+                        if ( $GameHeader{LightTime} % 5 == 0 ) {
+                            say("Your light is growing dim.");
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+
 main() unless caller;
 
 sub _get_int {
