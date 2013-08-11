@@ -62,7 +62,6 @@ use constant LIGHTOUTBIT  => 16;     #  Light gone out
 our $SECOND_PERSON    = 1;           # "you are" instead of "I am";
 our $SCOTTLIGHT       = 0;           #  Authentic Scott Adams light messages
 our $DEBUGGING        = 0;           #  Info from database load
-our $TRS80_STYLE      = 0;           #  Display in style used on TRS-80
 our $PREHISTORIC_LAMP = 1;           #  Destroy the lamp (very old databases)
 
 our @Items;
@@ -82,11 +81,11 @@ my @RoomSaved;                       #  Range unknown
 my $DisplayUp;                       #  Curses up
 
 #WINDOW *Top,*Bottom;
-my $Redraw;                          # Update item window
-our $Options = 0;                    # Option flags set
-our $Width;                          # Terminal width
-our $TopHeight;                      # Height of top window
-our $BottomHeight;                   # Height of bottom window
+my $Redraw;    # Update item window
+our $Options      = 0;     # Option flags set
+our $Width        = 80;    # Terminal width
+our $TopHeight    = 10;    # Height of top window
+our $BottomHeight = 14;    # Height of bottom window
 
 #     NumWords        #  Smaller of verb/noun is padded to same size
 our %GameHeader = map { $_ => 0 } qw(
@@ -172,9 +171,6 @@ sub MatchUpItem {
     }
     return;
 }
-
-#
-use constant TRS80_LINE => "\n<------------------------------------------------------------>\n";
 
 #
 sub MyLoc { $GameHeader{PlayerRoom} }
@@ -903,7 +899,6 @@ sub main {
         i => sub { $SECOND_PERSON = 0 },
         d => \$DEBUGGING,
         s => \$SCOTTLIGHT,
-        t => \$TRS80_STYLE,
         p => \$PREHISTORIC_LAMP,
         h => sub {
             say("$0 [-h] [-y] [-s] [-i] [-t] [-d] [-p] <gamename> [savedgame].");
@@ -914,16 +909,6 @@ sub main {
     if ( !@ARGV ) {
         warn "$0 <database> <savefile>.\n";
         exit(1);
-    }
-    if ($TRS80_STYLE) {
-        $Width        = 64;
-        $TopHeight    = 11;
-        $BottomHeight = 13;
-    }
-    else {
-        $Width        = 80;
-        $TopHeight    = 10;
-        $BottomHeight = 14;
     }
     say <<"END";
 
