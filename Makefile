@@ -4,12 +4,10 @@
 CC	=	gcc
 #
 #
+ScottCurses:
+	$(CC) src/ScottCurses.c src/Scott.h -o bin/ScottCurses -lcurses -ltermcap
+
 all	:	ScottCurses
 
-ScottCurses.o:	ScottCurses.c Scott.h
-
-ScottCurses:	ScottCurses.o
-	$(CC) ScottCurses.o -o ScottCurses -lcurses -ltermcap
-
 run: ScottCurses
-	./ScottCurses -y adv00
+	./bin/ScottCurses -y adv00

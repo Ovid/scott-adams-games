@@ -858,7 +858,7 @@ int PerformLine(int ct)
             Output("\n");
         }
         else {
-            #printf("\rcc is %d. act[cc] is %d\r\n", cc, act[cc]);
+            /* printf("\rcc is %d. act[cc] is %d\r\n", cc, act[cc]); */
             switch(act[cc])
             {
                 case 0:/* NOP */
