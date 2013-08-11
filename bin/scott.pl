@@ -545,16 +545,8 @@ sub PerformLine {
                         else                  { say("I'm carrying:\n"); }
                         while ( $ct <= $GameHeader{NumItems} ) {
                             if ( $Items[$ct]{Location} == CARRIED ) {
-                                if ( $f == 1 ) {
-                                    if ($TRS80_STYLE) {
-                                        say(". ");
-                                    }
-                                    else {
-                                        say(" - ");
-                                    }
-                                }
                                 $f = 1;
-                                say( $Items[$ct]{Text} );
+                                say( "  - $Items[$ct]{Text}" );
                             }
                             $ct++;
                         }
