@@ -10,6 +10,8 @@ use Carp::Always;
 use Storable 'dclone';
 $|++;
 
+our $VERSION = '0.01';
+
 use Data::Dumper::Simple;
 local $Data::Dumper::Indent   = 1;
 local $Data::Dumper::Sortkeys = 1;
@@ -932,7 +934,14 @@ sub main {
         $BottomHeight = 14;
     }
     say <<"END";
-Scott Free, A Scott Adams game driver in C.\n\
+
+scott.pl. a Scott Adams game driver written in Perl.
+Release $VERSION, (c) 2013, but Curtis "Ovid" Poe
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+Based on Scott Free, A Scott Adams game driver in C.
 Release 1.14, (c) 1993,1994,1995 Swansea University Computer Society.\n\
 Distributed under the GNU software license
 
