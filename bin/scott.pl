@@ -438,11 +438,11 @@ sub PerformLine {
     while ( $cc < 4 ) {
 
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
-            say( Messages[ $act[$cc] ] );
+            say( $Messages[ $act[$cc] ] );
             say("\n");
         }
         elsif ( $act[$cc] > 101 ) {
-            say( Messages[ $act[$cc] - 50 ] );
+            say( $Messages[ $act[$cc] - 50 ] );
             say("\n");
         }
         else {
