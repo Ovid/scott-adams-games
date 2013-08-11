@@ -857,264 +857,267 @@ int PerformLine(int ct)
             Output(Messages[act[cc]-50]);
             Output("\n");
         }
-        else switch(act[cc])
-        {
-            case 0:/* NOP */
-                break;
-            case 52:
-                if(CountCarried()==GameHeader.MaxCarry)
-                {
+        else {
+            #printf("\rcc is %d. act[cc] is %d\r\n", cc, act[cc]);
+            switch(act[cc])
+            {
+                case 0:/* NOP */
+                    break;
+                case 52:
+                    if(CountCarried()==GameHeader.MaxCarry)
+                    {
+                        if(Options&YOUARE)
+                            Output("You are carrying too much. ");
+                        else
+                            Output("I've too much to carry! ");
+                        break;
+                    }
+                    if(Items[param[pptr]].Location==MyLoc)
+                        Redraw=1;
+                    Items[param[pptr++]].Location= CARRIED;
+                    break;
+                case 53:
+                    Redraw=1;
+                    Items[param[pptr++]].Location=MyLoc;
+                    break;
+                case 54:
+                    Redraw=1;
+                    MyLoc=param[pptr++];
+                    break;
+                case 55:
+                    if(Items[param[pptr]].Location==MyLoc)
+                        Redraw=1;
+                    Items[param[pptr++]].Location=0;
+                    break;
+                case 56:
+                    BitFlags|=1<<DARKBIT;
+                    break;
+                case 57:
+                    BitFlags&=~(1<<DARKBIT);
+                    break;
+                case 58:
+                    BitFlags|=(1<<param[pptr++]);
+                    break;
+                case 59:
+                    if(Items[param[pptr]].Location==MyLoc)
+                        Redraw=1;
+                    Items[param[pptr++]].Location=0;
+                    break;
+                case 60:
+                    BitFlags&=~(1<<param[pptr++]);
+                    break;
+                case 61:
                     if(Options&YOUARE)
-                        Output("You are carrying too much. ");
+                        Output("You are dead.\n");
                     else
-                        Output("I've too much to carry! ");
+                        Output("I am dead.\n");
+                    BitFlags&=~(1<<DARKBIT);
+                    MyLoc=GameHeader.NumRooms;/* It seems to be what the code says! */
+                    Look();
+                    break;
+                case 62:
+                {
+                    /* Bug fix for some systems - before it could get parameters wrong */
+                    int i=param[pptr++];
+                    Items[i].Location=param[pptr++];
+                    Redraw=1;
                     break;
                 }
-                if(Items[param[pptr]].Location==MyLoc)
-                    Redraw=1;
-                Items[param[pptr++]].Location= CARRIED;
-                break;
-            case 53:
-                Redraw=1;
-                Items[param[pptr++]].Location=MyLoc;
-                break;
-            case 54:
-                Redraw=1;
-                MyLoc=param[pptr++];
-                break;
-            case 55:
-                if(Items[param[pptr]].Location==MyLoc)
-                    Redraw=1;
-                Items[param[pptr++]].Location=0;
-                break;
-            case 56:
-                BitFlags|=1<<DARKBIT;
-                break;
-            case 57:
-                BitFlags&=~(1<<DARKBIT);
-                break;
-            case 58:
-                BitFlags|=(1<<param[pptr++]);
-                break;
-            case 59:
-                if(Items[param[pptr]].Location==MyLoc)
-                    Redraw=1;
-                Items[param[pptr++]].Location=0;
-                break;
-            case 60:
-                BitFlags&=~(1<<param[pptr++]);
-                break;
-            case 61:
-                if(Options&YOUARE)
-                    Output("You are dead.\n");
-                else
-                    Output("I am dead.\n");
-                BitFlags&=~(1<<DARKBIT);
-                MyLoc=GameHeader.NumRooms;/* It seems to be what the code says! */
-                Look();
-                break;
-            case 62:
-            {
-                /* Bug fix for some systems - before it could get parameters wrong */
-                int i=param[pptr++];
-                Items[i].Location=param[pptr++];
-                Redraw=1;
-                break;
-            }
-            case 63:
-doneit:                Output("The game is now over.\n");
-                wrefresh(Bottom);
-                sleep(5);
-                endwin();
-                exit(0);
-            case 64:
-                Look();
-                break;
-            case 65:
-            {
-                int ct=0;
-                int n=0;
-                while(ct<=GameHeader.NumItems)
+                case 63:
+    doneit:                Output("The game is now over.\n");
+                    wrefresh(Bottom);
+                    sleep(5);
+                    endwin();
+                    exit(0);
+                case 64:
+                    Look();
+                    break;
+                case 65:
                 {
-                    if(Items[ct].Location==GameHeader.TreasureRoom &&
-                      *Items[ct].Text=='*')
-                          n++;
-                    ct++;
-                }
-                if(Options&YOUARE)
-                    Output("You have stored ");
-                else
-                    Output("I've stored ");
-                OutputNumber(n);
-                Output(" treasures.  On a scale of 0 to 100, that rates ");
-                OutputNumber((n*100)/GameHeader.Treasures);
-                Output(".\n");
-                if(n==GameHeader.Treasures)
-                {
-                    Output("Well done.\n");
-                    goto doneit;
-                }
-                break;
-            }
-            case 66:
-            {
-                int ct=0;
-                int f=0;
-                if(Options&YOUARE)
-                    Output("You are carrying:\n");
-                else
-                    Output("I'm carrying:\n");
-                while(ct<=GameHeader.NumItems)
-                {
-                    if(Items[ct].Location==CARRIED)
+                    int ct=0;
+                    int n=0;
+                    while(ct<=GameHeader.NumItems)
                     {
-                        if(f==1)
-                        {
-                            if (Options & TRS80_STYLE)
-                                Output(". ");
-                            else
-                                Output(" - ");
-                        }
-                        f=1;
-                        Output(Items[ct].Text);
+                        if(Items[ct].Location==GameHeader.TreasureRoom &&
+                          *Items[ct].Text=='*')
+                              n++;
+                        ct++;
                     }
-                    ct++;
+                    if(Options&YOUARE)
+                        Output("You have stored ");
+                    else
+                        Output("I've stored ");
+                    OutputNumber(n);
+                    Output(" treasures.  On a scale of 0 to 100, that rates ");
+                    OutputNumber((n*100)/GameHeader.Treasures);
+                    Output(".\n");
+                    if(n==GameHeader.Treasures)
+                    {
+                        Output("Well done.\n");
+                        goto doneit;
+                    }
+                    break;
                 }
-                if(f==0)
-                    Output("Nothing");
-                Output(".\n");
-                break;
-            }
-            case 67:
-                BitFlags|=(1<<0);
-                break;
-            case 68:
-                BitFlags&=~(1<<0);
-                break;
-            case 69:
-                GameHeader.LightTime=LightRefill;
-                if(Items[LIGHT_SOURCE].Location==MyLoc)
+                case 66:
+                {
+                    int ct=0;
+                    int f=0;
+                    if(Options&YOUARE)
+                        Output("You are carrying:\n");
+                    else
+                        Output("I'm carrying:\n");
+                    while(ct<=GameHeader.NumItems)
+                    {
+                        if(Items[ct].Location==CARRIED)
+                        {
+                            if(f==1)
+                            {
+                                if (Options & TRS80_STYLE)
+                                    Output(". ");
+                                else
+                                    Output(" - ");
+                            }
+                            f=1;
+                            Output(Items[ct].Text);
+                        }
+                        ct++;
+                    }
+                    if(f==0)
+                        Output("Nothing");
+                    Output(".\n");
+                    break;
+                }
+                case 67:
+                    BitFlags|=(1<<0);
+                    break;
+                case 68:
+                    BitFlags&=~(1<<0);
+                    break;
+                case 69:
+                    GameHeader.LightTime=LightRefill;
+                    if(Items[LIGHT_SOURCE].Location==MyLoc)
+                        Redraw=1;
+                    Items[LIGHT_SOURCE].Location=CARRIED;
+                    BitFlags&=~(1<<LIGHTOUTBIT);
+                    break;
+                case 70:
+                    ClearScreen(); /* pdd. */
+                    OutReset();
+                    break;
+                case 71:
+                    SaveGame();
+                    break;
+                case 72:
+                {
+                    int i1=param[pptr++];
+                    int i2=param[pptr++];
+                    int t=Items[i1].Location;
+                    if(t==MyLoc || Items[i2].Location==MyLoc)
+                        Redraw=1;
+                    Items[i1].Location=Items[i2].Location;
+                    Items[i2].Location=t;
+                    break;
+                }
+                case 73:
+                    continuation=1;
+                    break;
+                case 74:
+                    if(Items[param[pptr]].Location==MyLoc)
+                        Redraw=1;
+                    Items[param[pptr++]].Location= CARRIED;
+                    break;
+                case 75:
+                {
+                    int i1,i2;
+                    i1=param[pptr++];
+                    i2=param[pptr++];
+                    if(Items[i1].Location==MyLoc)
+                        Redraw=1;
+                    Items[i1].Location=Items[i2].Location;
+                    if(Items[i2].Location==MyLoc)
+                        Redraw=1;
+                    break;
+                }
+                case 76:    /* Looking at adventure .. */
+                    Look();
+                    break;
+                case 77:
+                    if(CurrentCounter>=0)
+                        CurrentCounter--;
+                    break;
+                case 78:
+                    OutputNumber(CurrentCounter);
+                    break;
+                case 79:
+                    CurrentCounter=param[pptr++];
+                    break;
+                case 80:
+                {
+                    int t=MyLoc;
+                    MyLoc=SavedRoom;
+                    SavedRoom=t;
                     Redraw=1;
-                Items[LIGHT_SOURCE].Location=CARRIED;
-                BitFlags&=~(1<<LIGHTOUTBIT);
-                break;
-            case 70:
-                ClearScreen(); /* pdd. */
-                OutReset();
-                break;
-            case 71:
-                SaveGame();
-                break;
-            case 72:
-            {
-                int i1=param[pptr++];
-                int i2=param[pptr++];
-                int t=Items[i1].Location;
-                if(t==MyLoc || Items[i2].Location==MyLoc)
+                    break;
+                }
+                case 81:
+                {
+                    /* This is somewhat guessed. Claymorgue always
+                       seems to do select counter n, thing, select counter n,
+                       but uses one value that always seems to exist. Trying
+                       a few options I found this gave sane results on ageing */
+                    int t=param[pptr++];
+                    int c1=CurrentCounter;
+                    CurrentCounter=Counters[t];
+                    Counters[t]=c1;
+                    break;
+                }
+                case 82:
+                    CurrentCounter+=param[pptr++];
+                    break;
+                case 83:
+                    CurrentCounter-=param[pptr++];
+                    if(CurrentCounter< -1)
+                        CurrentCounter= -1;
+                    /* Note: This seems to be needed. I don't yet
+                       know if there is a maximum value to limit too */
+                    break;
+                case 84:
+                    Output(NounText);
+                    break;
+                case 85:
+                    Output(NounText);
+                    Output("\n");
+                    break;
+                case 86:
+                    Output("\n");
+                    break;
+                case 87:
+                {
+                    /* Changed this to swap location<->roomflag[x]
+                       not roomflag 0 and x */
+                    int p=param[pptr++];
+                    int sr=MyLoc;
+                    MyLoc=RoomSaved[p];
+                    RoomSaved[p]=sr;
                     Redraw=1;
-                Items[i1].Location=Items[i2].Location;
-                Items[i2].Location=t;
-                break;
+                    break;
+                }
+                case 88:
+                    wrefresh(Top);
+                    wrefresh(Bottom);
+                    sleep(2);    /* DOC's say 2 seconds. Spectrum times at 1.5 */
+                    break;
+                case 89:
+                    pptr++;
+                    /* SAGA draw picture n */
+                    /* Spectrum Seas of Blood - start combat ? */
+                    /* Poking this into older spectrum games causes a crash */
+                    break;
+                default:
+                    fprintf(stderr,"Unknown action %d [Param begins %d %d]\n",
+                        act[cc],param[pptr],param[pptr+1]);
+                    break;
             }
-            case 73:
-                continuation=1;
-                break;
-            case 74:
-                if(Items[param[pptr]].Location==MyLoc)
-                    Redraw=1;
-                Items[param[pptr++]].Location= CARRIED;
-                break;
-            case 75:
-            {
-                int i1,i2;
-                i1=param[pptr++];
-                i2=param[pptr++];
-                if(Items[i1].Location==MyLoc)
-                    Redraw=1;
-                Items[i1].Location=Items[i2].Location;
-                if(Items[i2].Location==MyLoc)
-                    Redraw=1;
-                break;
-            }
-            case 76:    /* Looking at adventure .. */
-                Look();
-                break;
-            case 77:
-                if(CurrentCounter>=0)
-                    CurrentCounter--;
-                break;
-            case 78:
-                OutputNumber(CurrentCounter);
-                break;
-            case 79:
-                CurrentCounter=param[pptr++];
-                break;
-            case 80:
-            {
-                int t=MyLoc;
-                MyLoc=SavedRoom;
-                SavedRoom=t;
-                Redraw=1;
-                break;
-            }
-            case 81:
-            {
-                /* This is somewhat guessed. Claymorgue always
-                   seems to do select counter n, thing, select counter n,
-                   but uses one value that always seems to exist. Trying
-                   a few options I found this gave sane results on ageing */
-                int t=param[pptr++];
-                int c1=CurrentCounter;
-                CurrentCounter=Counters[t];
-                Counters[t]=c1;
-                break;
-            }
-            case 82:
-                CurrentCounter+=param[pptr++];
-                break;
-            case 83:
-                CurrentCounter-=param[pptr++];
-                if(CurrentCounter< -1)
-                    CurrentCounter= -1;
-                /* Note: This seems to be needed. I don't yet
-                   know if there is a maximum value to limit too */
-                break;
-            case 84:
-                Output(NounText);
-                break;
-            case 85:
-                Output(NounText);
-                Output("\n");
-                break;
-            case 86:
-                Output("\n");
-                break;
-            case 87:
-            {
-                /* Changed this to swap location<->roomflag[x]
-                   not roomflag 0 and x */
-                int p=param[pptr++];
-                int sr=MyLoc;
-                MyLoc=RoomSaved[p];
-                RoomSaved[p]=sr;
-                Redraw=1;
-                break;
-            }
-            case 88:
-                wrefresh(Top);
-                wrefresh(Bottom);
-                sleep(2);    /* DOC's say 2 seconds. Spectrum times at 1.5 */
-                break;
-            case 89:
-                pptr++;
-                /* SAGA draw picture n */
-                /* Spectrum Seas of Blood - start combat ? */
-                /* Poking this into older spectrum games causes a crash */
-                break;
-            default:
-                fprintf(stderr,"Unknown action %d [Param begins %d %d]\n",
-                    act[cc],param[pptr],param[pptr+1]);
-                break;
         }
         cc++;
     }
