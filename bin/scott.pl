@@ -12,7 +12,7 @@ $|++;
 
 our $VERSION = '0.01';
 
-use Data::Dumper::Simple;
+use Data::Dumper;
 local $Data::Dumper::Indent   = 1;
 local $Data::Dumper::Sortkeys = 1;
 
@@ -78,7 +78,6 @@ my @Counters;                        #  Range unknown
 my $CurrentCounter = 0;
 my $SavedRoom;
 my @RoomSaved;                       #  Range unknown
-my $DisplayUp;                       #  Curses up
 
 #WINDOW *Top,*Bottom;
 my $Redraw;    # Update item window
@@ -1026,11 +1025,16 @@ sub ReadString {
 
 sub ReadItem {
     my $fh = shift;
-    chomp( my $line = <$fh> );
 
+    my $line .= '';
+    do {
+        $line .= <$fh>;
+    } until $line =~ /"\s+\d+\s*$/;
+
+    chomp($line);
     my ( $item, $location, $autoget );
 
-    ( $item, $location ) = ( $line =~ /^"(.*)"\s+([0-9]+)\s*$/ );
+    ( $item, $location ) = ( $line =~ /^"(.*)"\s+([0-9]+)\s*$/s );
     unless ( defined $item and defined $location ) {
         croak("Bad item read at data file line $.: $line");
     }
@@ -1054,6 +1058,10 @@ sub LoadDatabase {
     foreach my $header (@headers) {
         $GameHeader{$header} = _get_int($fh);
     }
+    if ($loud) {
+        say "Header loaded";
+        print Data::Dumper->Dump( [ \%GameHeader ] => ['*GameHeader'] );
+    }
 
     $LightRefill = $GameHeader{LightTime};
 
@@ -1070,33 +1078,18 @@ sub LoadDatabase {
         $action{Action}[1] = _get_int($fh);
         push @Actions => \%action;
     }
-    if (0) {
-        print Dumper( $GameHeader{NumActions}, $Actions[-1] );
-        print <<'END';
-NumActions: 169
-Action0:    8176
-Action1:    0
-Condition0: 584
-Condition1: 600
-Condition2: 0
-Condition3: 0
-Condition4: 0
-Vocab:      166
-END
-        exit;
+    if ($loud) {
+        say "Actions loaded";
+        print Data::Dumper->Dump( [ $Actions[-1] ] => ['*last_action'] );
     }
 
     for ( 0 .. $GameHeader{NumWords} ) {
         push @Verbs => ReadString($fh);
         push @Nouns => ReadString($fh);
     }
-    if (0) {
+    if ($loud) {
+        say "Words loaded";
         print Dumper( $Verbs[-1], $Nouns[-1] );
-        print <<'END';
-Last verb: OPE
-Last noun: YOH
-END
-        exit;
     }
 
     foreach ( 0 .. $GameHeader{NumRooms} ) {
@@ -1110,21 +1103,17 @@ END
         $room{Text} = ReadString($fh);
         push @Rooms => \%room;
     }
-    if (0) {
+    if ($loud) {
+        say "Rooms loaded";
         print Dumper( $Rooms[-1] );
-        print <<'END';
-large misty room with strange
-unreadable letters over all the exits.
-END
-        exit;
     }
 
     for ( 0 .. $GameHeader{NumMessages} ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
     }
-    if (0) {
+    if ($loud) {
+        say "Messages loaded";
         print Dumper( $GameHeader{NumMessages}, $Messages[-1], $. );
-        exit;
     }
 
     for ( 0 .. $GameHeader{NumItems} ) {
@@ -1137,6 +1126,10 @@ END
         };
     }
 
+    if ($loud) {
+        say "Items loaded";
+        print Dumper($Items[-1]);
+    }
     ReadString($fh) for 0 .. $GameHeader{NumActions};    # skip comment strings
 
     my $version = _get_int($fh);
