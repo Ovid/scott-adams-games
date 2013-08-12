@@ -70,3 +70,7 @@ result, you'll see some very, very ugly code. There's a minimal test suite in
 the `t/` directory and hopefully as that expands, I'll be able to refactor
 this cleanly. Or better yet, I'll be able to accept your pull request to
 refactor this cleanly.
+
+If you want to hack, you should read the `Definition` file to understand how
+the game databases are designed, and `src/ScottCurses.c` is the (working) C
+source code.
