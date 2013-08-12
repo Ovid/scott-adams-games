@@ -921,7 +921,7 @@ sub main {
     say <<"END";
 
 scott.pl. a Scott Adams game driver written in Perl.
-Release $VERSION, (c) 2013, but Curtis "Ovid" Poe
+Release $VERSION, (c) 2013, by Curtis "Ovid" Poe
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
