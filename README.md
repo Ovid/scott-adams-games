@@ -60,7 +60,8 @@ interpreter:
     perl bin/scott.pl ADV01.DAT
 
 As of this writing, not all files load properly and some load but are clearly
-buggy.
+buggy. You may need to run `dos2unix` on those data files or the
+`LoadDatabase` function will get confused when it tries to read it.
 
 # THE CODE
 
