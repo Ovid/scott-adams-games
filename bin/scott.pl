@@ -1046,7 +1046,7 @@ sub ReadItem {
 }
 
 sub LoadDatabase {
-    my ( $db, $loud ) = @_;
+    my ( $db, $debugging ) = @_;
     open my $fh, '<', $db;
 
     my @headers = qw(
@@ -1058,7 +1058,7 @@ sub LoadDatabase {
     foreach my $header (@headers) {
         $GameHeader{$header} = _get_int($fh);
     }
-    if ($loud) {
+    if ($debugging) {
         say "Header loaded";
         print Data::Dumper->Dump( [ \%GameHeader ] => ['*GameHeader'] );
     }
@@ -1078,7 +1078,7 @@ sub LoadDatabase {
         $action{Action}[1] = _get_int($fh);
         push @Actions => \%action;
     }
-    if ($loud) {
+    if ($debugging) {
         say "Actions loaded";
         print Data::Dumper->Dump( [ $Actions[-1] ] => ['*last_action'] );
     }
@@ -1087,9 +1087,12 @@ sub LoadDatabase {
         push @Verbs => ReadString($fh);
         push @Nouns => ReadString($fh);
     }
-    if ($loud) {
+    if ($debugging) {
         say "Words loaded";
-        print Dumper( $Verbs[-1], $Nouns[-1] );
+        print Data::Dumper->Dump(
+            [ $Verbs[-1], $Nouns[-1] ],
+            [qw/*last_verb *last_noun/],
+        );
     }
 
     foreach ( 0 .. $GameHeader{NumRooms} ) {
@@ -1103,17 +1106,17 @@ sub LoadDatabase {
         $room{Text} = ReadString($fh);
         push @Rooms => \%room;
     }
-    if ($loud) {
+    if ($debugging) {
         say "Rooms loaded";
-        print Dumper( $Rooms[-1] );
+        print Data::Dumper->Dump( [ $Rooms[-1] ] => ['*last_room'] );
     }
 
     for ( 0 .. $GameHeader{NumMessages} ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
     }
-    if ($loud) {
+    if ($debugging) {
         say "Messages loaded";
-        print Dumper( $GameHeader{NumMessages}, $Messages[-1], $. );
+        print Data::Dumper->Dump( [ $Messages[-1] ] => ['*last_message'] );
     }
 
     for ( 0 .. $GameHeader{NumItems} ) {
@@ -1126,9 +1129,9 @@ sub LoadDatabase {
         };
     }
 
-    if ($loud) {
+    if ($debugging) {
         say "Items loaded";
-        print Dumper($Items[-1]);
+        print Data::Dumper->Dump( [ $Items[-1] ] => ['*last_item'] );
     }
     ReadString($fh) for 0 .. $GameHeader{NumActions};    # skip comment strings
 
