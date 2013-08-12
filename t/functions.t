@@ -30,7 +30,7 @@ ok !defined ::MatchUpItem( 'ax', 2 ), 'If an item is not at the specified locati
 is ::MatchUpItem( 'ax', 10 ), 11, '... otherwise, it should return the index number of the item';
 ok !defined ::MatchUpItem( 'sign', 3 ), '... but only if we can "GET" that item';
 
-chomp( my $expected_starting_look = <<'END');
+my $expected_starting_look = <<'END';
 You are in a forest
 
 
@@ -42,5 +42,7 @@ You can also see:
 END
 
 eq_or_diff ::Look(), $expected_starting_look, '... and our starting Look() should reveal the correct location';
+
+diag ::RandomPercent(4);
 
 done_testing;

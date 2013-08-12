@@ -357,7 +357,7 @@ sub PerformLine {
     my $cc = 0;
     while ( $cc < 5 ) {
         my $cv = $Actions[$ct]{Condition}[$cc];
-        my $dv = $cv / 20;
+        my $dv = int($cv / 20);
         $cv %= 20;
         given ($cv) {
             when (0) {
@@ -431,17 +431,25 @@ sub PerformLine {
     $act[3] = $act[2] % 150;
     $act[0] /= 150;
     $act[2] /= 150;
+    $_ = int($_) foreach @act[0,2];
     $cc   = 0;
     $pptr = 0;
     while ( $cc < 4 ) {
-
+        if ( 0) {
+            printf("\r\ncc: %d   act[cc]: %d\r\n", $cc, $act[$cc]);
+        }
+#cc: 0   act[cc]: 110
+#
+#cc: 1   act[cc]: 58
+#
+#cc: 2   act[cc]: 115
+#Distributed under the GNU software license
+#cc: 3   act[cc]: 107
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
             say( $Messages[ $act[$cc] ] );
-            say("\n");
         }
         elsif ( $act[$cc] > 101 ) {
             say( $Messages[ $act[$cc] - 50 ] );
-            say("\n");
         }
         else {
             given ( $act[$cc] ) {
@@ -749,6 +757,7 @@ sub PerformActions {
         }
         $nv = $vv % 150;
         $vv /= 150;
+        $vv = int($vv);
         if ( ( $vv == $vb ) || ( $doagain && $Actions[$ct]{Vocab} == 0 ) ) {
             if (   ( $vv == 0 && RandomPercent($nv) )
                 || $doagain
@@ -1208,5 +1217,5 @@ sub Look {
             $look .= "  - " . $Items[$i]{Text};
         }
     }
-    return $look;
+    return "$look\n";
 }
