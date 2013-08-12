@@ -1018,6 +1018,9 @@ sub ReadString {
     }
     while ( $word !~ /"$/ ) {
         chomp( $word .= "\n" . <$fh> );
+        if ( eof($fh) ) {
+            croak("PANIC: eof reached in ReadString");
+        }
     }
     $word =~ s/^"|"$//g;
     return $word;
@@ -1029,6 +1032,9 @@ sub ReadItem {
     my $line .= '';
     do {
         $line .= <$fh>;
+        if ( eof($fh) ) {
+            croak("PANIC: eof reached in ReadItem");
+        }
     } until $line =~ /"\s+\d+\s*$/;
 
     chomp($line);
@@ -1119,7 +1125,7 @@ sub LoadDatabase {
         print Data::Dumper->Dump( [ $Messages[-1] ] => ['*last_message'] );
     }
 
-    for ( 0 .. $GameHeader{NumItems} ) {
+    for my $i ( 0 .. $GameHeader{NumItems} ) {
         my ( $item, $location, $autoget ) = ReadItem($fh);
         push @Items => {
             Text       => $item,
