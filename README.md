@@ -39,7 +39,8 @@ starting screen similar to this:
 
     Tell me what to do ?
 
-And you can guess at, and issues, two-word commands:
+The commands are something you guess at, are limited to two words and for most
+games, only the first three letters of each word matters.
 
     Tell me what to do ? climb tree
     You are in a top of an oak.
