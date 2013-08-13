@@ -2,9 +2,11 @@ use Test::Most;
 use FindBin;
 require "$FindBin::Bin/../bin/scott.pl";
 
+# XXX These are set in scott.pl :/
+our (@Actions, %GameHeader, @Verbs, @Nouns, @Rooms, @Items, @Messages);
 my $database = 't/data/adv00';
 
-lives_ok { ::LoadDatabase($database) } 'Loading a valid database should succeed';
+lives_ok { LoadDatabase($database) } 'Loading a valid database should succeed';
 
 my $expected_headers = {
     LightTime    => 125,
@@ -21,7 +23,7 @@ my $expected_headers = {
     Unknown2     => 0,
     WordLength   => 3
 };
-eq_or_diff \%::GameHeader, $expected_headers, '... and the headers read from the db should be correct';
+eq_or_diff \%GameHeader, $expected_headers, '... and the headers read from the db should be correct';
 
 my $expected_actions = [
     { Action => [ 17612, 0 ],     Condition => [ 161,  386,  160,  200,  0 ],   Vocab => 75 },
@@ -196,9 +198,9 @@ my $expected_actions = [
     { Action => [ 8176,  0 ],     Condition => [ 584,  600,  0,    0,    0 ],   Vocab => 166 }
 ];
 
-eq_or_diff \@::Actions, $expected_actions, 'The actions read from the db should be correct';
+eq_or_diff \@Actions, $expected_actions, 'The actions read from the db should be correct';
 
-is @::Actions, $::GameHeader{NumActions} + 1, '... and they should match the header';
+is @Actions, $GameHeader{NumActions} + 1, '... and they should match the header';
 
 my $expected_verbs = [
     'AUT',
@@ -237,8 +239,8 @@ my $expected_verbs = [
     'OPE'
 ];
 
-eq_or_diff \@::Verbs, $expected_verbs, 'The verbs and their synonyms should be correct';
-is @::Verbs, $::GameHeader{NumWords} + 1, '... and they should match the header';
+eq_or_diff \@Verbs, $expected_verbs, 'The verbs and their synonyms should be correct';
+is @Verbs, $GameHeader{NumWords} + 1, '... and they should match the header';
 
 my $expected_nouns = [
     'ANY',
@@ -303,8 +305,8 @@ my $expected_nouns = [
     'LAK',
     'YOH'
 ];
-eq_or_diff \@::Nouns, $expected_nouns, 'The nouns and their synonyms should be correct';
-is @::Nouns, $::GameHeader{NumWords} + 1, '... and they should match the header';
+eq_or_diff \@Nouns, $expected_nouns, 'The nouns and their synonyms should be correct';
+is @Nouns, $GameHeader{NumWords} + 1, '... and they should match the header';
 
 my $expected_rooms = [
     { Exits => [ 0,  7,  10, 1,  0,  24 ], Text => '' },
@@ -354,9 +356,9 @@ don't think I want to go down"
 unreadable letters over all the exits."
     }
 ];
-eq_or_diff \@::Rooms, $expected_rooms,
+eq_or_diff \@Rooms, $expected_rooms,
 	'The rooms should be correct';
-is @::Rooms, $::GameHeader{NumRooms}+1,
+is @Rooms, $GameHeader{NumRooms}+1,
 	'... and the number of rooms should match the header';
 
 my $expected_items = [
@@ -431,9 +433,9 @@ my $expected_items = [
     { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '' },
     { AutoGet => undef, InitialLoc => '0',  Location => '0',  Text => '' }
 ];
-eq_or_diff \@::Items, $expected_items,
+eq_or_diff \@Items, $expected_items,
 	'The items read should be correct';
-is @::Items, $::GameHeader{NumItems}+1,
+is @Items, $GameHeader{NumItems}+1,
 	'... and the number of items should be correct';
 
 my $expected_messages = [
@@ -524,9 +526,9 @@ much more!
    'I see nothing special'
 ];
 
-eq_or_diff \@::Messages, $expected_messages,
+eq_or_diff \@Messages, $expected_messages,
     'The messages read should be correct';
-is @::Messages, $::GameHeader{NumMessages}+1,
+is @Messages, $GameHeader{NumMessages}+1,
 	'... and the number of messages should be correct';
 
 done_testing;
