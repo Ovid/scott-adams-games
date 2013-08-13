@@ -1035,12 +1035,12 @@ sub ReadItem {
         if ( eof($fh) ) {
             croak("PANIC: eof reached in ReadItem");
         }
-    } until $line =~ /"\s+\d+\s*$/;
+    } until $line =~ /"\s+-?\d+\s*$/;
 
     chomp($line);
     my ( $item, $location, $autoget );
 
-    ( $item, $location ) = ( $line =~ /^"(.*)"\s+([0-9]+)\s*$/s );
+    ( $item, $location ) = ( $line =~ /^"(.*)"\s+(-?[0-9]+)\s*$/s );
     unless ( defined $item and defined $location ) {
         croak("Bad item read at data file line $.: $line");
     }
