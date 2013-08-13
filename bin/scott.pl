@@ -1065,7 +1065,7 @@ sub LoadDatabase {
         $GameHeader{$header} = _get_int($fh);
     }
     if ($debugging) {
-        say "Header loaded";
+        say "Header loaded at line $.";
         print Data::Dumper->Dump( [ \%GameHeader ] => ['*GameHeader'] );
     }
 
@@ -1085,7 +1085,7 @@ sub LoadDatabase {
         push @Actions => \%action;
     }
     if ($debugging) {
-        say "Actions loaded";
+        say "Actions loaded at line $.";
         print Data::Dumper->Dump( [ $Actions[-1] ] => ['*last_action'] );
     }
 
@@ -1094,7 +1094,7 @@ sub LoadDatabase {
         push @Nouns => ReadString($fh);
     }
     if ($debugging) {
-        say "Words loaded";
+        say "Words loaded at line $.";
         print Data::Dumper->Dump(
             [ $Verbs[-1], $Nouns[-1] ],
             [qw/*last_verb *last_noun/],
@@ -1113,7 +1113,7 @@ sub LoadDatabase {
         push @Rooms => \%room;
     }
     if ($debugging) {
-        say "Rooms loaded";
+        say "Rooms loaded at line $.";
         print Data::Dumper->Dump( [ $Rooms[-1] ] => ['*last_room'] );
     }
 
@@ -1121,7 +1121,7 @@ sub LoadDatabase {
         push @Messages => ReadString($fh);
     }
     if ($debugging) {
-        say "Messages loaded";
+        say "Messages loaded at line $.";
         print Data::Dumper->Dump( [ $Messages[-1] ] => ['*last_message'] );
     }
 
@@ -1136,7 +1136,7 @@ sub LoadDatabase {
     }
 
     if ($debugging) {
-        say "Items loaded";
+        say "Items loaded at line $.";
         print Data::Dumper->Dump( [ $Items[-1] ] => ['*last_item'] );
     }
     ReadString($fh) for 0 .. $GameHeader{NumActions};    # skip comment strings
