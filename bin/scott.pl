@@ -194,53 +194,6 @@ sub CountCarried {
     return ($num);
 }
 
-#
-#void LineInput(char *buf)
-#{
-#    int pos=0;
-#    int ch;
-#    while(1)
-#    {
-#        wrefresh(Bottom);
-#        ch=wgetch(Bottom);
-#        switch(ch)
-#        {
-#            case 10:;
-#            case 13:;
-#                buf[pos]=0;
-#                scroll(Bottom);
-#                wmove(Bottom,$BottomHeight,0);
-#                return;
-#            case 8:;
-#            case 127:;
-#                if(pos>0)
-#                {
-#                    int y,x;
-#                    getyx(Bottom,y,x);
-#                    x--;
-#                    if(x==-1)
-#                    {
-#                        x=$Width-1;
-#                        y--;
-#                    }
-#                    mvwaddch(Bottom,y,x,' ');
-#                    wmove(Bottom,y,x);
-#                    wrefresh(Bottom);
-#                    pos--;
-#                }
-#                break;
-#            default:
-#                if(ch>=' '&&ch<=126)
-#                {
-#                    buf[pos++]=ch;
-#                    waddch(Bottom,(char)ch);
-#                    wrefresh(Bottom);
-#                }
-#                break;
-#        }
-#    }
-#}
-#
 sub GetInput {
     say '-' x 80;
     GetInput: while (1) {
@@ -268,6 +221,7 @@ sub GetInput {
 
                 # Brian Howarth interpreter also supports this
                 when ('i') { $verb = 'INVENTORY' }
+                when ('q') { say "Quitting"; exit }
             }
         }
         $noun //= '';
@@ -437,13 +391,6 @@ sub PerformLine {
         if ( 0) {
             printf("\r\ncc: %d   act[cc]: %d\r\n", $cc, $act[$cc]);
         }
-#cc: 0   act[cc]: 110
-#
-#cc: 1   act[cc]: 58
-#
-#cc: 2   act[cc]: 115
-#Distributed under the GNU software license
-#cc: 3   act[cc]: 107
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
             say( $Messages[ $act[$cc] ] );
         }
@@ -550,6 +497,9 @@ sub PerformLine {
                             if ( $Items[$ct]{Location} == CARRIED ) {
                                 $f = 1;
                                 say( "  - $Items[$ct]{Text}" );
+                            }
+                            elsif ($Items[$ct]{Text} =~ /Surgically/) {
+                                say Dumper($Items[$ct]);
                             }
                             $ct++;
                         }
@@ -1047,6 +997,11 @@ sub ReadItem {
 
     if ( $item =~ s!/([^/]+)/$!! ) {
         $autoget = $1;
+    }
+    if ( -1 == $location ) {
+
+        # in the C, it's an unsigned char
+        $location = CARRIED;
     }
     return $item, $location, $autoget;
 }
