@@ -279,12 +279,25 @@ void LoadDatabase(FILE *f, int loud)
             printf("Bad action line (%d)\n",ct);
             exit(1);
         }
+        if(ct == 0 && loud) {
+            printf("\r\nFirst Action\r\n");
+            printf("\r\nNumActions: %i", na);
+            printf("\r\nVocab: %hd", ap->Vocab);
+            printf("\r\nCondition0: %hd", ap->Condition[0]);
+            printf("\r\nCondition1: %hd", ap->Condition[1]);
+            printf("\r\nCondition2: %hd", ap->Condition[2]);
+            printf("\r\nCondition3: %hd", ap->Condition[3]);
+            printf("\r\nCondition4: %hd", ap->Condition[4]);
+            printf("\r\nAction0: %hd", ap->Action[0]);
+            printf("\r\nAction1: %hd", ap->Action[1]);
+        }
         ap++;
         ct++;
 
     }
-    if(0) {
+    if(loud) {
         ap--;
+        printf("\r\nLast Action\r\n");
         printf("\r\nNumActions: %i", na);
         printf("\r\nVocab: %hd", ap->Vocab);
         printf("\r\nCondition0: %hd", ap->Condition[0]);
@@ -294,7 +307,6 @@ void LoadDatabase(FILE *f, int loud)
         printf("\r\nCondition4: %hd", ap->Condition[4]);
         printf("\r\nAction0: %hd", ap->Action[0]);
         printf("\r\nAction1: %hd", ap->Action[1]);
-        exit(0);
     }
     ct=0;
     if(loud)
@@ -303,18 +315,21 @@ void LoadDatabase(FILE *f, int loud)
     {
         Verbs[ct]=ReadString(f);
         Nouns[ct]=ReadString(f);
+        if (ct == 0 && loud) {
+            printf("\r\nFirst verb: %s", Verbs[ct]);
+            printf("\r\nFirst noun: %s", Nouns[ct]);
+        }
         ct++;
     }
-    if (0) {
+    if (loud) {
         ct--;
         printf("\r\nLast verb: %s", Verbs[ct]);
         printf("\r\nLast noun: %s", Nouns[ct]);
-        exit(0);
     }
     ct=0;
     rp=Rooms;
     if(loud)
-        printf("Reading %d rooms.\n",nr);
+        printf("\r\nReading %d rooms.\n",nr);
     while(ct<nr+1)
     {
         fscanf(f,"%hd %hd %hd %hd %hd %hd",
@@ -323,11 +338,13 @@ void LoadDatabase(FILE *f, int loud)
         rp->Text=ReadString(f);
         ct++;
         rp++;
+        if (ct == 0 && loud) {
+            printf("\r\nFirst Room: (%s)", rp->Text);
+        }
     }
-    if (0) {
+    if (loud) {
         rp--;
-        printf("\r\nLast Room: %s", rp->Text);
-        exit(0);
+        printf("\r\nLast Room: (%s)", rp->Text);
     }
     ct=0;
     if(loud)
@@ -335,8 +352,12 @@ void LoadDatabase(FILE *f, int loud)
     while(ct<mn+1)
     {
         Messages[ct]=ReadString(f);
+        if ( ct == 0 && loud )
+            printf("\r\nFirst message (%s)",Messages[0]);
         ct++;
     }
+    if ( loud )
+        printf("\r\nLast message (%s)",Messages[ct - 1]);
     ct=0;
     if(loud)
         printf("Reading %d items.\n",ni);
@@ -357,17 +378,21 @@ void LoadDatabase(FILE *f, int loud)
         fscanf(f,"%hd",&lo);
         ip->Location=(unsigned char)lo;
         ip->InitialLoc=ip->Location;
-        if (0) {
-            printf("Count: %d\r\n", ct);
+        if (ct == 0 && loud) {
             printf("Text: %s\r\n", ip->Text);
             printf("AutoGet: %s\r\n", ip->AutoGet);
             printf("Location: %d\r\n", ip->Location);
             printf("InitialLoc: %d\r\n\n", ip->InitialLoc);
-            if (ip->AutoGet!=NULL)
-                exit(0);
         }
         ip++;
         ct++;
+    }
+    if (loud) {
+        ip--;
+        printf("Text: %s\r\n", ip->Text);
+        printf("AutoGet: %s\r\n", ip->AutoGet);
+        printf("Location: %d\r\n", ip->Location);
+        printf("InitialLoc: %d\r\n\n", ip->InitialLoc);
     }
     ct=0;
     /* Discard Comment Strings */
@@ -381,8 +406,10 @@ void LoadDatabase(FILE *f, int loud)
         printf("Version %d.%02d of Adventure ",
         ct/100,ct%100);
     fscanf(f,"%d",&ct);
-    if(loud)
+    if(loud) {
         printf("%d.\nLoad Complete.\n\n",ct);
+        exit(0);
+    }
 }
 
 int OutputPos=0;
