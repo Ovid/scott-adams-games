@@ -11,3 +11,6 @@ all	:	ScottCurses
 
 run: ScottCurses
 	./bin/ScottCurses -y adv00
+
+debug: ScottCurses
+	./bin/ScottCurses -d -y adv00
