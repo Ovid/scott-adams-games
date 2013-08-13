@@ -263,7 +263,7 @@ void LoadDatabase(FILE *f, int loud)
     ct=0;
     ap=Actions;
     if(loud)
-        printf("Reading %d actions.\n",na);
+        printf("\r\nReading %d actions.\n",na);
     while(ct<na+1)
     {
         if(fscanf(f,"%hd %hd %hd %hd %hd %hd %hd %hd",
@@ -310,7 +310,7 @@ void LoadDatabase(FILE *f, int loud)
     }
     ct=0;
     if(loud)
-        printf("Reading %d word pairs.\n",nw);
+        printf("\r\nReading %d word pairs.\n",nw);
     while(ct<nw+1)
     {
         Verbs[ct]=ReadString(f);
@@ -348,7 +348,7 @@ void LoadDatabase(FILE *f, int loud)
     }
     ct=0;
     if(loud)
-        printf("Reading %d messages.\n",mn);
+        printf("\r\nReading %d messages.\n",mn);
     while(ct<mn+1)
     {
         Messages[ct]=ReadString(f);
@@ -360,7 +360,7 @@ void LoadDatabase(FILE *f, int loud)
         printf("\r\nLast message (%s)",Messages[ct - 1]);
     ct=0;
     if(loud)
-        printf("Reading %d items.\n",ni);
+        printf("\r\nReading %d items.\n",ni);
     ip=Items;
     while(ct<ni+1)
     {
@@ -403,11 +403,11 @@ void LoadDatabase(FILE *f, int loud)
     }
     fscanf(f,"%d",&ct);
     if(loud)
-        printf("Version %d.%02d of Adventure ",
+        printf("\r\nVersion %d.%02d of Adventure ",
         ct/100,ct%100);
     fscanf(f,"%d",&ct);
     if(loud) {
-        printf("%d.\nLoad Complete.\n\n",ct);
+        printf("%d.\r\nLoad Complete.",ct);
         exit(0);
     }
 }

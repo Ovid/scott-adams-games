@@ -13,4 +13,4 @@ run: ScottCurses
 	./bin/ScottCurses -y adv00
 
 debug: ScottCurses
-	./bin/ScottCurses -d -y adv00
+	./bin/ScottCurses -d -y adv00 | tee debug.txt 2>&1
