@@ -1083,6 +1083,10 @@ sub LoadDatabase {
         $action{Action}[0] = _get_int($fh);
         $action{Action}[1] = _get_int($fh);
         push @Actions => \%action;
+
+        if ($i == 0 && $debugging) {
+            print Data::Dumper->Dump( [ $Actions[0] ] => ['*first_action'] );
+        }
     }
     if ($debugging) {
         say "Actions loaded at line $.";
@@ -1092,6 +1096,12 @@ sub LoadDatabase {
     for ( 0 .. $GameHeader{NumWords} ) {
         push @Verbs => ReadString($fh);
         push @Nouns => ReadString($fh);
+        if ($_ == 0 && $debugging) {
+            print Data::Dumper->Dump(
+                [ $Verbs[0], $Nouns[0] ],
+                [qw/*first_verb *first_noun/],
+            );
+        }
     }
     if ($debugging) {
         say "Words loaded at line $.";
@@ -1111,6 +1121,9 @@ sub LoadDatabase {
         }
         $room{Text} = ReadString($fh);
         push @Rooms => \%room;
+        if ($_ == 0 && $debugging) {
+            print Data::Dumper->Dump( [ $Rooms[0] ] => ['*first_room'] );
+        }
     }
     if ($debugging) {
         say "Rooms loaded at line $.";
@@ -1119,6 +1132,9 @@ sub LoadDatabase {
 
     for ( 0 .. $GameHeader{NumMessages} ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
+        if ($_ == 0 && $debugging) {
+            print Data::Dumper->Dump( [ $Messages[0] ] => ['*first_message'] );
+        }
     }
     if ($debugging) {
         say "Messages loaded at line $.";
@@ -1133,6 +1149,9 @@ sub LoadDatabase {
             InitialLoc => $location,
             AutoGet    => $autoget,
         };
+        if ( $i == 0 && $debugging) {
+            print Data::Dumper->Dump( [ $Items[-1] ] => ['*first_item'] );
+        }
     }
 
     if ($debugging) {
