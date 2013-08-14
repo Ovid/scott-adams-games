@@ -80,11 +80,11 @@ my $SavedRoom;
 my @RoomSaved;                       #  Range unknown
 
 #WINDOW *Top,*Bottom;
-my $Redraw;    # Update item window
-our $Options      = 0;     # Option flags set
-our $Width        = 80;    # Terminal width
-our $TopHeight    = 10;    # Height of top window
-our $BottomHeight = 14;    # Height of bottom window
+my $Redraw;                          # Update item window
+our $Options      = 0;               # Option flags set
+our $Width        = 80;              # Terminal width
+our $TopHeight    = 10;              # Height of top window
+our $BottomHeight = 14;              # Height of bottom window
 
 #     NumWords        #  Smaller of verb/noun is padded to same size
 our %GameHeader = map { $_ => 0 } qw(
@@ -187,7 +187,7 @@ sub RandomPercent {
 sub CountCarried {
     my $num = 0;
     for my $ct ( 0 .. $GameHeader{NumItems} ) {
-        if ( item_is($ct, CARRIED) ) {
+        if ( item_is( $ct, CARRIED ) ) {
             $num++;
         }
     }
@@ -320,22 +320,22 @@ sub PerformLine {
         given ($cv) {
             when (0) { $param[ $pptr++ ] = $dv; }
             when (1) {
-                if ( !item_is($dv, CARRIED) ) { return 0; }
+                if ( !item_is( $dv, CARRIED ) ) { return 0; }
             }
             when (2) {
-                if ( !item_is($dv, MyLoc) ) { return 0; }
+                if ( !item_is( $dv, MyLoc ) ) { return 0; }
             }
             when (3) {
-                if ( !item_is($dv, CARRIED) && !item_is($dv, MyLoc) ) { return (0); }
+                if ( !item_is( $dv, CARRIED ) && !item_is( $dv, MyLoc ) ) { return (0); }
             }
             when (4) {
                 if ( MyLoc != $dv ) { return (0); }
             }
             when (5) {
-                if ( item_is($dv, MyLoc) ) { return (0); }
+                if ( item_is( $dv, MyLoc ) ) { return (0); }
             }
             when (6) {
-                if ( item_is($dv, CARRIED) ) { return (0); }
+                if ( item_is( $dv, CARRIED ) ) { return (0); }
             }
             when (7) {
                 if ( MyLoc == $dv ) { return (0); }
@@ -353,10 +353,10 @@ sub PerformLine {
                 if ( CountCarried() ) { return (0); }
             }
             when (12) {
-                if ( item_is($dv, CARRIED) || item_is($dv, MyLoc) ) { return (0); }
+                if ( item_is( $dv, CARRIED ) || item_is( $dv, MyLoc ) ) { return (0); }
             }
             when (13) {
-                if ( item_is($dv, 0) ) { return (0); }
+                if ( item_is( $dv, 0 ) ) { return (0); }
             }
             when (14) {
                 if ( $Items[$dv]{Location} ) { return (0); }
@@ -387,12 +387,13 @@ sub PerformLine {
     $act[3] = $act[2] % 150;
     $act[0] /= 150;
     $act[2] /= 150;
-    $_ = int($_) foreach @act[0,2];
+    $_    = int($_) foreach @act[ 0, 2 ];
     $cc   = 0;
     $pptr = 0;
     while ( $cc < 4 ) {
+
         if (0) {
-            say(sprintf "cc: %d   act[cc]: %d", $cc, $act[$cc]);
+            say( sprintf "cc: %d   act[cc]: %d", $cc, $act[$cc] );
         }
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
             say( $Messages[ $act[$cc] ] );
@@ -497,12 +498,12 @@ sub PerformLine {
                         if   ($SECOND_PERSON) { say("You are carrying:\n"); }
                         else                  { say("I'm carrying:\n"); }
                         while ( $ct <= $GameHeader{NumItems} ) {
-                            if ( item_is($ct, CARRIED) ) {
+                            if ( item_is( $ct, CARRIED ) ) {
                                 $f = 1;
-                                say( "  - $Items[$ct]{Text}" );
+                                say("  - $Items[$ct]{Text}");
                             }
-                            elsif ($Items[$ct]{Text} =~ /Surgically/) {
-                                say Dumper($Items[$ct]);
+                            elsif ( $Items[$ct]{Text} =~ /Surgically/ ) {
+                                say Dumper( $Items[$ct] );
                             }
                             $ct++;
                         }
@@ -534,7 +535,7 @@ sub PerformLine {
                         my $i1 = $param[ $pptr++ ];
                         my $i2 = $param[ $pptr++ ];
                         my $t  = $Items[$i1]{Location};
-                        if ( $t == MyLoc || item_is($i2, MyLoc) ) { $Redraw = 1; }
+                        if ( $t == MyLoc || item_is( $i2, MyLoc ) ) { $Redraw = 1; }
                         $Items[$i1]{Location} = $Items[$i2]{Location};
                         $Items[$i2]{Location} = $t;
                     }
@@ -550,9 +551,9 @@ sub PerformLine {
                     {
                         my $i1 = $param[ $pptr++ ];
                         my $i2 = $param[ $pptr++ ];
-                        if ( item_is($i1, MyLoc) ) { $Redraw = 1; }
+                        if ( item_is( $i1, MyLoc ) ) { $Redraw = 1; }
                         $Items[$i1]{Location} = $Items[$i2]{Location};
-                        if ( item_is($i2, MyLoc) ) { $Redraw = 1; }
+                        if ( item_is( $i2, MyLoc ) ) { $Redraw = 1; }
                     }
                 }
                 when (76) {    #  Looking at adventure ..
@@ -752,7 +753,7 @@ sub PerformActions {
                         return 0;
                     }
                     for my $ct ( 0 .. $GameHeader{NumItems} ) {
-                        if (   item_is($ct, MyLoc)
+                        if (   item_is( $ct, MyLoc )
                             && defined $Items[$ct]{AutoGet}
                             && $Items[$ct]{AutoGet} !~ /^\*/ )
                         {
@@ -810,7 +811,7 @@ sub PerformActions {
                 if ( strncasecmp( $NounText, "ALL", $GameHeader{WordLength} ) ) {
                     my $f = 0;
                     foreach my $ct ( 0 .. $GameHeader{NumItems} ) {
-                        if (   item_is($ct, CARRIED)
+                        if (   item_is( $ct, CARRIED )
                             && $Items[$ct]{AutoGet}
                             && $Items[$ct]{AutoGet} !~ /^\*/ )
                         {
@@ -925,7 +926,7 @@ END
                         say("Your light has run out. ");
                     }
                 }
-                if ( $Options &$PREHISTORIC_LAMP ) {
+                if ( $Options & $PREHISTORIC_LAMP ) {
                     $Items[LIGHT_SOURCE]{Location} = DESTROYED;
                 }
             }
@@ -1042,7 +1043,7 @@ sub LoadDatabase {
         $action{Action}[1] = _get_int($fh);
         push @Actions => \%action;
 
-        if ($i == 0 && $debugging) {
+        if ( $i == 0 && $debugging ) {
             print Data::Dumper->Dump( [ $Actions[0] ] => ['*first_action'] );
         }
     }
@@ -1054,7 +1055,7 @@ sub LoadDatabase {
     for ( 0 .. $GameHeader{NumWords} ) {
         push @Verbs => ReadString($fh);
         push @Nouns => ReadString($fh);
-        if ($_ == 0 && $debugging) {
+        if ( $_ == 0 && $debugging ) {
             print Data::Dumper->Dump(
                 [ $Verbs[0], $Nouns[0] ],
                 [qw/*first_verb *first_noun/],
@@ -1079,7 +1080,7 @@ sub LoadDatabase {
         }
         $room{Text} = ReadString($fh);
         push @Rooms => \%room;
-        if ($_ == 0 && $debugging) {
+        if ( $_ == 0 && $debugging ) {
             print Data::Dumper->Dump( [ $Rooms[0] ] => ['*first_room'] );
         }
     }
@@ -1090,7 +1091,7 @@ sub LoadDatabase {
 
     for ( 0 .. $GameHeader{NumMessages} ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
-        if ($_ == 0 && $debugging) {
+        if ( $_ == 0 && $debugging ) {
             print Data::Dumper->Dump( [ $Messages[0] ] => ['*first_message'] );
         }
     }
@@ -1107,7 +1108,7 @@ sub LoadDatabase {
             InitialLoc => $location,
             AutoGet    => $autoget,
         };
-        if ( $i == 0 && $debugging) {
+        if ( $i == 0 && $debugging ) {
             print Data::Dumper->Dump( [ $Items[-1] ] => ['*first_item'] );
         }
     }
@@ -1181,7 +1182,7 @@ sub Look {
     my $pos = 0;
 
     foreach my $i ( 0 .. $GameHeader{NumItems} ) {
-        if ( item_is($i, MyLoc) ) {
+        if ( item_is( $i, MyLoc ) ) {
             if ( !$f ) {
                 $look .=
                   $SECOND_PERSON
