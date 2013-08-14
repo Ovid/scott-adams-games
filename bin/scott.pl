@@ -187,7 +187,7 @@ sub RandomPercent {
 sub CountCarried {
     my $num = 0;
     for my $ct ( 0 .. $GameHeader{NumItems} ) {
-        if ( $Items[$ct]{Location} == CARRIED ) {
+        if ( item_is($ct, CARRIED) ) {
             $num++;
         }
     }
@@ -301,7 +301,12 @@ sub GetInput {
 #    }
 #    fclose(f);
 #}
-#
+
+sub item_is {
+    my ( $i, $status ) = @_;
+    return $Items[$i]{Location} == $status;
+}
+
 sub PerformLine {
     my $ct           = shift;
     my $continuation = 0;
@@ -310,29 +315,27 @@ sub PerformLine {
     my $cc = 0;
     while ( $cc < 5 ) {
         my $cv = $Actions[$ct]{Condition}[$cc];
-        my $dv = int($cv / 20);
+        my $dv = int( $cv / 20 );
         $cv %= 20;
         given ($cv) {
-            when (0) {
-                $param[ $pptr++ ] = $dv;
-            }
+            when (0) { $param[ $pptr++ ] = $dv; }
             when (1) {
-                if ( $Items[$dv]{Location} != CARRIED ) { return (0); }
+                if ( !item_is($dv, CARRIED) ) { return 0; }
             }
             when (2) {
-                if ( $Items[$dv]{Location} != MyLoc ) { return (0); }
+                if ( !item_is($dv, MyLoc) ) { return 0; }
             }
             when (3) {
-                if ( $Items[$dv]{Location} != CARRIED && $Items[$dv]{Location} != MyLoc ) { return (0); }
+                if ( !item_is($dv, CARRIED) && !item_is($dv, MyLoc) ) { return (0); }
             }
             when (4) {
                 if ( MyLoc != $dv ) { return (0); }
             }
             when (5) {
-                if ( $Items[$dv]{Location} == MyLoc ) { return (0); }
+                if ( item_is($dv, MyLoc) ) { return (0); }
             }
             when (6) {
-                if ( $Items[$dv]{Location} == CARRIED ) { return (0); }
+                if ( item_is($dv, CARRIED) ) { return (0); }
             }
             when (7) {
                 if ( MyLoc == $dv ) { return (0); }
@@ -350,10 +353,10 @@ sub PerformLine {
                 if ( CountCarried() ) { return (0); }
             }
             when (12) {
-                if ( $Items[$dv]{Location} == CARRIED || $Items[$dv]{Location} == MyLoc ) { return (0); }
+                if ( item_is($dv, CARRIED) || item_is($dv, MyLoc) ) { return (0); }
             }
             when (13) {
-                if ( $Items[$dv]{Location} == 0 ) { return (0); }
+                if ( item_is($dv, 0) ) { return (0); }
             }
             when (14) {
                 if ( $Items[$dv]{Location} ) { return (0); }
@@ -388,8 +391,8 @@ sub PerformLine {
     $cc   = 0;
     $pptr = 0;
     while ( $cc < 4 ) {
-        if ( 0) {
-            printf("\r\ncc: %d   act[cc]: %d\r\n", $cc, $act[$cc]);
+        if (0) {
+            say(sprintf "cc: %d   act[cc]: %d", $cc, $act[$cc]);
         }
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
             say( $Messages[ $act[$cc] ] );
@@ -494,7 +497,7 @@ sub PerformLine {
                         if   ($SECOND_PERSON) { say("You are carrying:\n"); }
                         else                  { say("I'm carrying:\n"); }
                         while ( $ct <= $GameHeader{NumItems} ) {
-                            if ( $Items[$ct]{Location} == CARRIED ) {
+                            if ( item_is($ct, CARRIED) ) {
                                 $f = 1;
                                 say( "  - $Items[$ct]{Text}" );
                             }
@@ -531,7 +534,7 @@ sub PerformLine {
                         my $i1 = $param[ $pptr++ ];
                         my $i2 = $param[ $pptr++ ];
                         my $t  = $Items[$i1]{Location};
-                        if ( $t == MyLoc || $Items[$i2]{Location} == MyLoc ) { $Redraw = 1; }
+                        if ( $t == MyLoc || item_is($i2, MyLoc) ) { $Redraw = 1; }
                         $Items[$i1]{Location} = $Items[$i2]{Location};
                         $Items[$i2]{Location} = $t;
                     }
@@ -547,9 +550,9 @@ sub PerformLine {
                     {
                         my $i1 = $param[ $pptr++ ];
                         my $i2 = $param[ $pptr++ ];
-                        if ( $Items[$i1]{Location} == MyLoc ) { $Redraw = 1; }
+                        if ( item_is($i1, MyLoc) ) { $Redraw = 1; }
                         $Items[$i1]{Location} = $Items[$i2]{Location};
-                        if ( $Items[$i2]{Location} == MyLoc ) { $Redraw = 1; }
+                        if ( item_is($i2, MyLoc) ) { $Redraw = 1; }
                     }
                 }
                 when (76) {    #  Looking at adventure ..
@@ -749,7 +752,7 @@ sub PerformActions {
                         return 0;
                     }
                     for my $ct ( 0 .. $GameHeader{NumItems} ) {
-                        if (   $Items[$ct]{Location} == MyLoc
+                        if (   item_is($ct, MyLoc)
                             && defined $Items[$ct]{AutoGet}
                             && $Items[$ct]{AutoGet} !~ /^\*/ )
                         {
@@ -807,7 +810,7 @@ sub PerformActions {
                 if ( strncasecmp( $NounText, "ALL", $GameHeader{WordLength} ) ) {
                     my $f = 0;
                     foreach my $ct ( 0 .. $GameHeader{NumItems} ) {
-                        if (   $Items[$ct]{Location} == CARRIED
+                        if (   item_is($ct, CARRIED)
                             && $Items[$ct]{AutoGet}
                             && $Items[$ct]{AutoGet} !~ /^\*/ )
                         {
@@ -1178,7 +1181,7 @@ sub Look {
     my $pos = 0;
 
     foreach my $i ( 0 .. $GameHeader{NumItems} ) {
-        if ( $Items[$i]{Location} == MyLoc ) {
+        if ( item_is($i, MyLoc) ) {
             if ( !$f ) {
                 $look .=
                   $SECOND_PERSON
@@ -1193,5 +1196,5 @@ sub Look {
             $look .= "  - " . $Items[$i]{Text};
         }
     }
-    return "$look\n";
+    return "$look\n\n";
 }
