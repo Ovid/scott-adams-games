@@ -49,19 +49,18 @@ games, only the first three letters of each word matters.
     Obvious exits:
     Down
 
-I would like to bundle the Scott Adams games in this distribution, but it's
-not clear if I can legally do this. However, I've found that you can
-(legally), download the [PDA zip file](http://www.msadams.com/downloads/advpda.zip)
-from [Scott Adams official download page](http://www.msadams.com/downloads.htm)
-and unzip it. In the `advpda/data_scottadams` directory, you'll find a bunch
-of `ADV*.DAT` files. Those are the files you should be able to play with this
-interpreter:
+Scott Adams has graciously agreed to allow me to bundle his games with this
+distribution and they are included in the `games` directory. Please see the
+[Scott Adams official Web site](http://www.msadams.com/) for more information
+about copyright and to read more about his history and the history of these
+fun games.
+    
+You can run a game with the following:
 
-    perl bin/scott.pl ADV01.DAT
+    perl bin/scott.pl games/pirate_adventure.dat
 
-As of this writing, not all files load properly and some load but are clearly
-buggy. You may need to run `dos2unix` on those data files or the
-`LoadDatabase` function will get confused when it tries to read it.
+As of this writing, there appear to be a few bugs and I don't have the 'save'
+or 'load' functionality written.
 
 # THE CODE
 
