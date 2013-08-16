@@ -74,3 +74,11 @@ refactor this cleanly.
 If you want to hack, you should read the `Definition` file to understand how
 the game databases are designed, and `src/ScottCurses.c` is the (working) C
 source code.
+
+If you really want to play the games and not wait for the Perl implementation
+to be finished, you can run `make` and then you'll find `bin/ScottCurses`:
+
+    bin/ScottCurses games/pirate_adventure.dat
+
+For hacking, it's great to be able to run both games side-by-side to compare
+divergences in behavior.
