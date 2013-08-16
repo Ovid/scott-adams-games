@@ -280,16 +280,16 @@ void LoadDatabase(FILE *f, int loud)
             exit(1);
         }
         if(ct == 0 && loud) {
-            printf("\r\nFirst Action\r\n");
-            printf("\r\nNumActions: %i", na);
-            printf("\r\nVocab: %hd", ap->Vocab);
-            printf("\r\nCondition0: %hd", ap->Condition[0]);
-            printf("\r\nCondition1: %hd", ap->Condition[1]);
-            printf("\r\nCondition2: %hd", ap->Condition[2]);
-            printf("\r\nCondition3: %hd", ap->Condition[3]);
-            printf("\r\nCondition4: %hd", ap->Condition[4]);
-            printf("\r\nAction0: %hd", ap->Action[0]);
-            printf("\r\nAction1: %hd", ap->Action[1]);
+            fprintf(stderr, "\r\nFirst Action\r\n");
+            fprintf(stderr, "\r\nNumActions: %i", na);
+            fprintf(stderr, "\r\nVocab: %hd", ap->Vocab);
+            fprintf(stderr, "\r\nCondition0: %hd", ap->Condition[0]);
+            fprintf(stderr, "\r\nCondition1: %hd", ap->Condition[1]);
+            fprintf(stderr, "\r\nCondition2: %hd", ap->Condition[2]);
+            fprintf(stderr, "\r\nCondition3: %hd", ap->Condition[3]);
+            fprintf(stderr, "\r\nCondition4: %hd", ap->Condition[4]);
+            fprintf(stderr, "\r\nAction0: %hd", ap->Action[0]);
+            fprintf(stderr, "\r\nAction1: %hd", ap->Action[1]);
         }
         ap++;
         ct++;
@@ -297,39 +297,39 @@ void LoadDatabase(FILE *f, int loud)
     }
     if(loud) {
         ap--;
-        printf("\r\nLast Action\r\n");
-        printf("\r\nNumActions: %i", na);
-        printf("\r\nVocab: %hd", ap->Vocab);
-        printf("\r\nCondition0: %hd", ap->Condition[0]);
-        printf("\r\nCondition1: %hd", ap->Condition[1]);
-        printf("\r\nCondition2: %hd", ap->Condition[2]);
-        printf("\r\nCondition3: %hd", ap->Condition[3]);
-        printf("\r\nCondition4: %hd", ap->Condition[4]);
-        printf("\r\nAction0: %hd", ap->Action[0]);
-        printf("\r\nAction1: %hd", ap->Action[1]);
+        fprintf(stderr, "\r\nLast Action\r\n");
+        fprintf(stderr, "\r\nNumActions: %i", na);
+        fprintf(stderr, "\r\nVocab: %hd", ap->Vocab);
+        fprintf(stderr, "\r\nCondition0: %hd", ap->Condition[0]);
+        fprintf(stderr, "\r\nCondition1: %hd", ap->Condition[1]);
+        fprintf(stderr, "\r\nCondition2: %hd", ap->Condition[2]);
+        fprintf(stderr, "\r\nCondition3: %hd", ap->Condition[3]);
+        fprintf(stderr, "\r\nCondition4: %hd", ap->Condition[4]);
+        fprintf(stderr, "\r\nAction0: %hd", ap->Action[0]);
+        fprintf(stderr, "\r\nAction1: %hd", ap->Action[1]);
     }
     ct=0;
     if(loud)
-        printf("\r\nReading %d word pairs.\n",nw);
+        fprintf(stderr, "\r\nReading %d word pairs.\n",nw);
     while(ct<nw+1)
     {
         Verbs[ct]=ReadString(f);
         Nouns[ct]=ReadString(f);
         if (ct == 0 && loud) {
-            printf("\r\nFirst verb: %s", Verbs[ct]);
-            printf("\r\nFirst noun: %s", Nouns[ct]);
+            fprintf(stderr, "\r\nFirst verb: %s", Verbs[ct]);
+            fprintf(stderr, "\r\nFirst noun: %s", Nouns[ct]);
         }
         ct++;
     }
     if (loud) {
         ct--;
-        printf("\r\nLast verb: %s", Verbs[ct]);
-        printf("\r\nLast noun: %s", Nouns[ct]);
+        fprintf(stderr, "\r\nLast verb: %s", Verbs[ct]);
+        fprintf(stderr, "\r\nLast noun: %s", Nouns[ct]);
     }
     ct=0;
     rp=Rooms;
     if(loud)
-        printf("\r\nReading %d rooms.\n",nr);
+        fprintf(stderr, "\r\nReading %d rooms.\n",nr);
     while(ct<nr+1)
     {
         fscanf(f,"%hd %hd %hd %hd %hd %hd",
@@ -339,28 +339,28 @@ void LoadDatabase(FILE *f, int loud)
         ct++;
         rp++;
         if (ct == 0 && loud) {
-            printf("\r\nFirst Room: (%s)", rp->Text);
+            fprintf(stderr, "\r\nFirst Room: (%s)", rp->Text);
         }
     }
     if (loud) {
         rp--;
-        printf("\r\nLast Room: (%s)", rp->Text);
+        fprintf(stderr, "\r\nLast Room: (%s)", rp->Text);
     }
     ct=0;
     if(loud)
-        printf("\r\nReading %d messages.\n",mn);
+        fprintf(stderr, "\r\nReading %d messages.\n",mn);
     while(ct<mn+1)
     {
         Messages[ct]=ReadString(f);
         if ( ct == 0 && loud )
-            printf("\r\nFirst message (%s)",Messages[0]);
+            fprintf(stderr, "\r\nFirst message (%s)",Messages[0]);
         ct++;
     }
     if ( loud )
-        printf("\r\nLast message (%s)",Messages[ct - 1]);
+        fprintf(stderr, "\r\nLast message (%s)",Messages[ct - 1]);
     ct=0;
     if(loud)
-        printf("\r\nReading %d items.\n",ni);
+        fprintf(stderr, "\r\nReading %d items.\n",ni);
     ip=Items;
     while(ct<ni+1)
     {
@@ -379,20 +379,20 @@ void LoadDatabase(FILE *f, int loud)
         ip->Location=(unsigned char)lo;
         ip->InitialLoc=ip->Location;
         if (ct == 0 && loud) {
-            printf("Text: %s\r\n", ip->Text);
-            printf("AutoGet: %s\r\n", ip->AutoGet);
-            printf("Location: %d\r\n", ip->Location);
-            printf("InitialLoc: %d\r\n\n", ip->InitialLoc);
+            fprintf(stderr, "Text: %s\r\n", ip->Text);
+            fprintf(stderr, "AutoGet: %s\r\n", ip->AutoGet);
+            fprintf(stderr, "Location: %d\r\n", ip->Location);
+            fprintf(stderr, "InitialLoc: %d\r\n\n", ip->InitialLoc);
         }
         ip++;
         ct++;
     }
     if (loud) {
         ip--;
-        printf("Text: %s\r\n", ip->Text);
-        printf("AutoGet: %s\r\n", ip->AutoGet);
-        printf("Location: %d\r\n", ip->Location);
-        printf("InitialLoc: %d\r\n\n", ip->InitialLoc);
+        fprintf(stderr, "Text: %s\r\n", ip->Text);
+        fprintf(stderr, "AutoGet: %s\r\n", ip->AutoGet);
+        fprintf(stderr, "Location: %d\r\n", ip->Location);
+        fprintf(stderr, "InitialLoc: %d\r\n\n", ip->InitialLoc);
     }
     ct=0;
     /* Discard Comment Strings */
@@ -407,7 +407,7 @@ void LoadDatabase(FILE *f, int loud)
         ct/100,ct%100);
     fscanf(f,"%d",&ct);
     if(loud) {
-        printf("%d.\r\nLoad Complete.",ct);
+        fprintf(stderr, "%d.\r\nLoad Complete.",ct);
         exit(0);
     }
 }
@@ -874,6 +874,8 @@ int PerformLine(int ct)
     pptr=0;
     while(cc<4)
     {
+        if(0)
+            printf("\rct: %d cc is %d. act[cc] is %d\r\n", ct, cc, act[cc]);
         if(act[cc]>=1 && act[cc]<52)
         {
             Output(Messages[act[cc]]);
@@ -885,7 +887,6 @@ int PerformLine(int ct)
             Output("\n");
         }
         else {
-            /* printf("\rcc is %d. act[cc] is %d\r\n", cc, act[cc]); */
             switch(act[cc])
             {
                 case 0:/* NOP */
