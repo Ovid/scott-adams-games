@@ -74,7 +74,7 @@ our @Messages;
 our $LightRefill;
 our $NounText;
 
-my @Counters;                        #  Range unknown
+my @Counters = (0) x 16;             #  Range unknown. Zeros to avoid uninit
 my $CurrentCounter = 0;
 my $SavedRoom;
 my @RoomSaved;                       #  Range unknown
@@ -292,7 +292,8 @@ sub item_is {
 sub PerformLine {
     my $ct           = shift;
     my $continuation = 0;
-    my ( @param, $pptr );
+    my @param;
+    my $pptr = 0;
     my @act;
     my $cc = 0;
     while ( $cc < 5 ) {
@@ -373,9 +374,8 @@ sub PerformLine {
     $cc   = 0;
     $pptr = 0;
     while ( $cc < 4 ) {
-
         if (0) {
-            say( sprintf "cc: %d   act[cc]: %d", $cc, $act[$cc] );
+            say( sprintf "ct: $ct cc: %d   act[cc]: %d", $cc, $act[$cc] );
         }
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
             say( $Messages[ $act[$cc] ] );
