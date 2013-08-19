@@ -819,6 +819,8 @@ int PerformLine(int ct)
         cv=Actions[ct].Condition[cc];
         dv=cv/20;
         cv%=20;
+        if (TRACE)
+            fprintf(stderr, "PerformLine top:\n\tcc: %d\n\tdv: %d\n\tcv: %d\n\tpptr: %d\n", cc, dv, cv, pptr);
         switch(cv)
         {
             case 0:
@@ -858,8 +860,11 @@ int PerformLine(int ct)
                     return(0);
                 break;
             case 9:
-                if(BitFlags&(1<<dv))
+                if(BitFlags&(1<<dv)) {
+                    if (TRACE)
+                        fprintf(stderr, "Returning from case 9\n");
                     return(0);
+                }
                 break;
             case 10:
                 if(CountCarried()==0)
@@ -1280,6 +1285,13 @@ int PerformActions(int vb,int no)
             }
         }
         ct++;
+        if (TRACE) {
+            fprintf(stderr, "doagain reset:\n\tct: %d\nVocab: %d\n\t", ct, Actions[ct].Vocab );
+        }
+        /* Looks like there may be a bug here, but it accidentally works. ct
+         * at one point has a value of 278 (return_to_pirate_island.dat before
+         * first prompt), but by accident, we overshoot the array and hit
+         * random, non-zero data. */
         if(Actions[ct].Vocab!=0)
             doagain=0;
     }

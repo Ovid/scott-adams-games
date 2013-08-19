@@ -322,6 +322,9 @@ sub PerformLine {
         my $cv = $Actions[$ct]{Condition}[$cc];
         my $dv = int( $cv / 20 );
         $cv %= 20;
+        if ($TRACE) {
+            printf STDERR "PerformLine top:\n\tcc: %d\n\tdv: %d\n\tcv: %d\n\tpptr: %d\n", $cc, $dv, $cv, $pptr;
+        }
         given ($cv) {
             when (0) { $param[ $pptr++ ] = $dv; }
             when (1) {
@@ -349,7 +352,12 @@ sub PerformLine {
                 if ( ( $BitFlags & ( 1 << $dv ) ) == 0 ) { return 0; }
             }
             when (9) {
-                if ( $BitFlags & ( 1 << $dv ) ) { return 0; }
+                if ( $BitFlags & ( 1 << $dv ) ) {
+                    if ($TRACE) {
+                        print STDERR "Returning from case 9\n";
+                    }
+                    return 0;
+                }
             }
             when (10) {
                 if ( CountCarried() == 0 ) { return 0; }
@@ -733,7 +741,14 @@ sub PerformActions {
             }
         }
         $ct++;
+        if ($TRACE) {
+            printf STDERR "doagain reset:\n\tct: $ct\nVocab: %s\n\t", $Actions[$ct]{Vocab} // '0';
+        }
         # XXX worried that // 0 is a mistake
+        # Looks like there may be a bug here, but it accidentally works. ct
+        # at one point has a value of 278 (return_to_pirate_island.dat before
+        # first prompt), but by accident, we overshoot the array and hit
+        # random, non-zero data in the C code
         if ( ( $Actions[$ct]{Vocab} // 0 ) != 0 ) {
             $doagain = 0;
         }
