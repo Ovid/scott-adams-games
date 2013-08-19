@@ -732,7 +732,9 @@ sub PerformActions {
                 }
             }
         }
-        if ( $Actions[$ct]{Vocab} != 0 ) {
+        $ct++;
+        # XXX worried that // 0 is a mistake
+        if ( ( $Actions[$ct]{Vocab} // 0 ) != 0 ) {
             $doagain = 0;
         }
     }
