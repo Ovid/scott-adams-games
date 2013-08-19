@@ -414,8 +414,10 @@ sub PerformLine {
                         if   ($SECOND_PERSON) { say("You are carrying too much. "); }
                         else                  { say("I've too much to carry! "); }
                     }
-                    if ( $Items[ $param[$pptr] ]{Location} == MyLoc ) { $Redraw = 1; }
-                    $Items[ $param[ $pptr++ ] ]{Location} = CARRIED;
+                    else {
+                        if ( $Items[ $param[$pptr] ]{Location} == MyLoc ) { $Redraw = 1; }
+                        $Items[ $param[ $pptr++ ] ]{Location} = CARRIED;
+                    }
                 }
                 when (53) {
                     $Redraw = 1;
