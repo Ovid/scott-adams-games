@@ -56,7 +56,7 @@ use constant OPE       => 69;
 use constant LIGHT_SOURCE => 9;      #  Always 9 how odd
 use constant CARRIED      => 255;    #  Carried
 use constant DESTROYED    => 0;      #  Destroyed
-use constant DARKBIT      => 1;      #
+use constant DARKBIT      => 15;     #
 use constant LIGHTOUTBIT  => 16;     #  Light gone out
 
 our $SECOND_PERSON    = 1;           # "you are" instead of "I am";
