@@ -63,6 +63,7 @@ our $SECOND_PERSON    = 1;           # "you are" instead of "I am";
 our $SCOTTLIGHT       = 0;           #  Authentic Scott Adams light messages
 our $DEBUGGING        = 0;           #  Info from database load
 our $PREHISTORIC_LAMP = 1;           #  Destroy the lamp (very old databases)
+our $TRACE            = 0;
 
 our @Items;
 our @Rooms;
@@ -110,6 +111,10 @@ sub strncasecmp {
 }
 
 sub MapSynonym {
+    if ($TRACE) {
+        local $" = ', ';
+        say STDERR "MapSynonym(@_)";
+    }
     my $word = shift;
     my $lastword;
 
@@ -141,6 +146,10 @@ sub WhichWord {
 }
 
 sub MatchUpItem {
+    if ($TRACE) {
+        local $" = ', ';
+        say STDERR "MatchUpItem(@_)";
+    }
     my ( $text, $loc ) = @_;
     my $word = MapSynonym($text) // $text;
 
@@ -161,6 +170,11 @@ sub MyLoc { $GameHeader{PlayerRoom} }
 my $BitFlags = 0;    # Might be >32 flags - I haven't seen >32 yet
 
 sub RandomPercent {
+    if ($TRACE) {
+        local $" = ', ';
+        say STDERR "RandomPercent(@_)";
+        return $_[0] > 50;
+    }
     my $n  = shift;
     my $rv = rand() << 6;
     $rv %= 100;
@@ -169,6 +183,10 @@ sub RandomPercent {
 
 sub CountCarried {
     my $num = 0;
+    if ($TRACE) {
+        local $" = ', ';
+        say STDERR "CountCarried(@_)";
+    }
     for my $ct ( 0 .. $GameHeader{NumItems} ) {
         if ( item_is( $ct, CARRIED ) ) {
             $num++;
@@ -290,6 +308,10 @@ sub item_is {
 }
 
 sub PerformLine {
+    if ($TRACE) {
+        local $" = ', ';
+        say STDERR "PerformLine(@_)";
+    }
     my $ct           = shift;
     my $continuation = 0;
     my @param;
@@ -374,8 +396,8 @@ sub PerformLine {
     $cc   = 0;
     $pptr = 0;
     while ( $cc < 4 ) {
-        if (0) {
-            say( sprintf "ct: $ct cc: %d   act[cc]: %d", $cc, $act[$cc] );
+        if ($TRACE) {
+            print STDERR "ct: $ct\ncc: $cc\nact[cc]: $act[$cc]\n";
         }
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
             say( $Messages[ $act[$cc] ] );
@@ -615,6 +637,10 @@ sub PerformLine {
 }
 
 sub PerformActions {
+    if ($TRACE) {
+        local $" = ', ';
+        say STDERR "PerformActions(@_)";
+    }
     my ( $vb, $no ) = @_;
 
     state $disable_sysfunc = 0;    # recursion lock?
@@ -679,6 +705,11 @@ sub PerformActions {
         $nv = $vv % 150;
         $vv /= 150;
         $vv = int($vv);
+        if ($TRACE) {
+            printf STDERR
+              "vv: %d\nvb: %d\ndoagain: %d\nVocab: %d\nnv: %d\nno: %d\nfl: %d\n",
+              $vv, $vb, $doagain, $Actions[$ct]{Vocab}, $nv, $no, $fl;
+        }
         if ( ( $vv == $vb ) || ( $doagain && $Actions[$ct]{Vocab} == 0 ) ) {
             if (   ( $vv == 0 && RandomPercent($nv) )
                 || $doagain
@@ -830,11 +861,21 @@ sub main {
         d => \$DEBUGGING,
         s => \$SCOTTLIGHT,
         p => \$PREHISTORIC_LAMP,
+        a => \$TRACE,
         h => sub {
             say("$0 [-h] [-y] [-s] [-i] [-t] [-d] [-p] <gamename> [savedgame].");
             exit;
         },
     );
+
+    if ($TRACE) {
+        # Match the last line of gcc's output if the user hits CTRL-C to exist
+        # the program. This makes a trace diff of the two files identical.
+        $SIG{INT} = sub {
+            print STDERR "User exit.";
+            exit;
+        };
+    }
     $ARGV[0] //= 'adv00';    # XXX remove
     if ( !@ARGV ) {
         warn "$0 <database> <savefile>.\n";
@@ -1095,6 +1136,10 @@ sub LoadDatabase {
 }
 
 sub Look {
+    if ($TRACE) {
+        local $" = ', ';
+        say STDERR "Look(@_)";
+    }
     my @ExitNames = qw(North South East West Up Down);
 
     my $look = '';

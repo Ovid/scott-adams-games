@@ -21,6 +21,9 @@
 #include <stdarg.h>
 #include <signal.h>
 
+/* for the stack trace */
+#include <execinfo.h>
+
 #include "Scott.h"
 
 #ifdef AMIGA
@@ -37,6 +40,24 @@
  */
 
 #ifdef NOSTRNCASECMP
+
+/* Obtain a backtrace and print it to stderr. */
+void print_trace (void) {
+  void   *array[10];
+  size_t  size;
+  char  **strings;
+  size_t  i;
+
+  size    = backtrace(array, 10);
+  strings = backtrace_symbols(array, size);
+
+  printf ("Obtained %zd stack frames.\n", size);
+
+  for (i = 0; i < size; i++)
+     fprintf(stderr, "%s\n", strings[i]);
+
+  free (strings);
+}
 
 static int strncasecmp(char *a,char *b, int n)
 {
@@ -85,14 +106,15 @@ char NounText[16];
 int Counters[16];    /* Range unknown */
 int CurrentCounter;
 int SavedRoom;
-int RoomSaved[16];    /* Range unknown */
-int DisplayUp;        /* Curses up */
+int RoomSaved[16];   /* Range unknown */
+int DisplayUp;       /* Curses up */
 WINDOW *Top,*Bottom;
-int Redraw;        /* Update item window */
-int Options;        /* Option flags set */
-int Width;        /* Terminal width */
-int TopHeight;        /* Height of top window */
+int Redraw;          /* Update item window */
+int Options;         /* Option flags set */
+int Width;           /* Terminal width */
+int TopHeight;       /* Height of top window */
 int BottomHeight;    /* Height of bottom window */
+int TRACE;           /* trace function calls */
 
 #define TRS80_LINE    "\n<------------------------------------------------------------>\n"
 
@@ -129,6 +151,12 @@ void *MemAlloc(int size)
 
 int RandomPercent(int n)
 {
+    if (TRACE) {
+        fprintf(stderr, "RandomPercent(%d)\n", n);
+        if (n > 50)
+            return(1);
+        return (0);
+    }
     unsigned int rv=rand()<<6;
     rv%=100;
     if(rv<n)
@@ -138,6 +166,8 @@ int RandomPercent(int n)
 
 int CountCarried()
 {
+    if (TRACE)
+        fprintf(stderr, "CountCarried()\n");
     int ct=0;
     int n=0;
     while(ct<=GameHeader.NumItems)
@@ -151,6 +181,8 @@ int CountCarried()
 
 char *MapSynonym(char *word)
 {
+    if (TRACE)
+        fprintf(stderr, "MapSynonym(%s)\n", word);
     int n=1;
     char *tp;
     static char lastword[16];    /* Last non synonym */
@@ -170,6 +202,8 @@ char *MapSynonym(char *word)
 
 int MatchUpItem(char *text, int loc)
 {
+    if (TRACE)
+        fprintf(stderr, "MatchUpItem(%s, %d)\n", text, loc);
     char *word=MapSynonym(text);
     int ct=0;
 
@@ -496,6 +530,8 @@ void OutputNumber(int a)
 
 void Look()
 {
+    if(TRACE)
+        fprintf(stderr, "Look()\n");
     static char *ExitNames[6]=
     {
         "North","South","East","West","Up","Down"
@@ -768,6 +804,11 @@ void LoadGame(char *name)
 
 int PerformLine(int ct)
 {
+    if (TRACE) {
+        fprintf(stderr, "PerformLine(%d)\n", ct);
+        //if ( ct == 9 )
+        //    print_trace();
+    }
     int continuation=0;
     int param[5],pptr=0;
     int act[4];
@@ -874,8 +915,8 @@ int PerformLine(int ct)
     pptr=0;
     while(cc<4)
     {
-        if(0)
-            printf("\rct: %d cc is %d. act[cc] is %d\r\n", ct, cc, act[cc]);
+        if(TRACE)
+            fprintf(stderr, "ct: %d\ncc: %d\nact[cc]: %d\n", ct, cc, act[cc]);
         if(act[cc]>=1 && act[cc]<52)
         {
             Output(Messages[act[cc]]);
@@ -1155,6 +1196,8 @@ int PerformLine(int ct)
 
 int PerformActions(int vb,int no)
 {
+    if (TRACE)
+        fprintf(stderr, "PerformActions(%d, %d)\n", vb, no);
     static int disable_sysfunc=0;    /* Recursion lock */
     int d=BitFlags&(1<<DARKBIT);
 
@@ -1212,6 +1255,11 @@ int PerformActions(int vb,int no)
             break;
         nv=vv%150;
         vv/=150;
+        if (TRACE) {
+            fprintf(stderr,
+               "vv: %d\nvb: %d\ndoagain: %d\nVocab: %d\nnv: %d\nno: %d\nfl: %d\n",
+                    vv,     vb,     doagain, Actions[ct].Vocab,  nv, no, fl);
+        }
         if((vv==vb)||(doagain&&Actions[ct].Vocab==0))
         {
             if((vv==0 && RandomPercent(nv))||doagain||
@@ -1361,10 +1409,10 @@ int PerformActions(int vb,int no)
     return(fl);
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     FILE *f;
     int vb,no;
+    TRACE = 0;
 
     while(argv[1])
     {
@@ -1389,6 +1437,9 @@ int main(int argc, char *argv[])
                 break;
             case 'p':
                 Options|=PREHISTORIC_LAMP;
+                break;
+            case 'a':
+                TRACE = 1;
                 break;
             case 'h':
             default:
