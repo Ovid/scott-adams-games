@@ -496,8 +496,9 @@ sub PerformLine {
                     }
                     if   ($SECOND_PERSON) { say("You have stored "); }
                     else                  { say("I've stored "); }
-                    say("$n treasures.  On a scale of 0 to 100, that rates ");
-                    say( ( $n * 100 ) / $GameHeader{Treasures} );
+                    print("$n treasures.  On a scale of 0 to 100, that rates ");
+                    say( int( ( $n * 100 ) / $GameHeader{Treasures} ) );
+
                     if ( $n == $GameHeader{Treasures} ) {
                         say("Well done.\n");
                         goto doneit;
@@ -695,7 +696,6 @@ sub PerformActions {
         }
         return 0;
     }
-    my $ct      = 0;
     my $fl      = -1;
     my $doagain = 0;
     ACTIONS: foreach my $ct ( 0 .. $GameHeader{NumActions} ) {
