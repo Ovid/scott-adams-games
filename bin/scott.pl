@@ -247,6 +247,13 @@ sub GetInput {
     }
 }
 
+sub SaveGame {
+    say <<'END';
+Saving the game is not yet implemented. Sucks to be you!
+Patches welcome at https://github.com/Ovid/scott-adams-games
+END
+}
+
 #void SaveGame()
 #{
 #    char buf[256];
@@ -272,7 +279,13 @@ sub GetInput {
 #    fclose(f);
 #    say("Saved.\n");
 #}
-#
+
+sub LoadGame {
+    say <<'END';
+Loading the game is not yet implemented. Sucks to be you!
+Patches welcome at https://github.com/Ovid/scott-adams-games
+END
+}
 #void LoadGame(char *name)
 #{
 #    FILE *f=fopen(name,"r");
