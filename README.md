@@ -12,10 +12,13 @@ Scott Adams game driver written in Perl
 
 # DESCRIPTION
 
-This is __ALPHA__ code. It's not guaranteed to work and certainly has bugs.
+This is __ALPHA__ code. It probably has bugs, but seems to work pretty well so
+far. Once `save game` and `load game` commands work, this should be in
+__BETA__ and work on cleaning up the internals can begin.
 
 This is a pure Perl driver for the old [Scott Adams games](http://en.wikipedia.org/wiki/Scott_Adams_\(game_designer\)).
-The `save` and `load` functions are not yet implemented.
+The `save game` and `load game` functions are not yet implemented. Patches
+very welcome (and it should be an easy task).
 
 If you play it with the mini-adventure in the test suite, you'll see a
 starting screen similar to this:
