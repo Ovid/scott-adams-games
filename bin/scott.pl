@@ -80,7 +80,7 @@ my $CurrentCounter = 0;
 my $SavedRoom;
 my @RoomSaved;                       #  Range unknown
 
-my $Redraw;                          # Update item window
+my $Redraw        = 0;               # Update item window
 our $Options      = 0;               # Option flags set
 our $Width        = 80;              # Terminal width
 our $TopHeight    = 10;              # Height of top window
@@ -920,19 +920,16 @@ END
 
     say Look();
     while (1) {
-
-        #        if(Redraw!=0)
-        #        {
-        #            say Look();
-        #            Redraw=0;
-        #        }
+        if ( $Redraw != 0 ) {
+            say Look();
+            $Redraw = 0;
+        }
         PerformActions( 0, 0 );
 
-        #        if(Redraw!=0)
-        #        {
-        #            say Look();
-        #            Redraw=0;
-        #        }
+        if ( $Redraw != 0 ) {
+            say Look();
+            $Redraw = 0;
+        }
         my ( $verb, $noun ) = GetInput();
         given ( PerformActions( $verb, $noun ) ) {
             when (-1) { say("I don't understand your command. ") }
