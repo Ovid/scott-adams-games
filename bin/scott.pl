@@ -1001,7 +1001,11 @@ sub ReadString {
     while ( $word !~ /"$/ ) {
         chomp( $word .= "\n" . <$fh> );
         if ( eof($fh) ) {
-            croak("PANIC: eof reached in ReadString");
+            croak(<<'END');
+PANIC: eof reached in ReadString.
+
+Maybe run dos2unix or unix2dos on the game file?
+END
         }
     }
     $word =~ s/^"|"$//g;
@@ -1015,7 +1019,11 @@ sub ReadItem {
     do {
         $line .= <$fh>;
         if ( eof($fh) ) {
-            croak("PANIC: eof reached in ReadItem");
+            croak(<<'END');
+PANIC: eof reached in ReadItem.
+
+Maybe run dos2unix or unix2dos on the game file?
+END
         }
     } until $line =~ /"\s+-?\d+\s*$/;
 
