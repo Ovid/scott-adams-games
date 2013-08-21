@@ -75,16 +75,16 @@ our @Messages;
 our $LightRefill;
 our $NounText;
 
-my @Counters = (0) x 16;             #  Range unknown. Zeros to avoid uninit
+my @Counters       = (0) x 16;    #  Range unknown. Zeros to avoid uninit
 my $CurrentCounter = 0;
 my $SavedRoom;
-my @RoomSaved;                       #  Range unknown
+my @RoomSaved;                    #  Range unknown
 
-my $Redraw        = 0;               # Update item window
-our $Options      = 0;               # Option flags set
-our $Width        = 80;              # Terminal width
-our $TopHeight    = 10;              # Height of top window
-our $BottomHeight = 14;              # Height of bottom window
+my $Redraw = 0;                   # Update item window
+our $Options      = 0;            # Option flags set
+our $Width        = 80;           # Terminal width
+our $TopHeight    = 10;           # Height of top window
+our $BottomHeight = 14;           # Height of bottom window
 
 #     NumWords        #  Smaller of verb/noun is padded to same size
 our %GameHeader = map { $_ => 0 } qw(
@@ -404,6 +404,7 @@ sub PerformLine {
     $cc   = 0;
     $pptr = 0;
     while ( $cc < 4 ) {
+
         if ($TRACE) {
             print STDERR "ct: $ct\ncc: $cc\nact[cc]: $act[$cc]\n";
         }
@@ -576,7 +577,7 @@ sub PerformLine {
                     $CurrentCounter = $param[ $pptr++ ];
                 }
                 when (80) {
-                        my $t = MyLoc;
+                    my $t = MyLoc;
                     $GameHeader{PlayerRoom} = $SavedRoom;
                     $SavedRoom              = $t;
                     $Redraw                 = 1;
@@ -744,6 +745,7 @@ sub PerformActions {
         if ($TRACE) {
             printf STDERR "doagain reset:\n\tct: $ct\nVocab: %s\n\t", $Actions[$ct]{Vocab} // '0';
         }
+
         # XXX worried that // 0 is a mistake
         # Looks like there may be a bug here, but it accidentally works. ct
         # at one point has a value of 278 (return_to_pirate_island.dat before
@@ -888,6 +890,7 @@ sub main {
     );
 
     if ($TRACE) {
+
         # Match the last line of gcc's output if the user hits CTRL-C to exist
         # the program. This makes a trace diff of the two files identical.
         $SIG{INT} = sub {
