@@ -9,6 +9,7 @@ Scott Adams game driver written in Perl
 # SYNOPSIS
 
     perl bin/scott.pl <adventure database>
+    perl bin/scott.pl games/the_count.dat
 
 # DESCRIPTION
 
