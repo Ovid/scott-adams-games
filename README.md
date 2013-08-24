@@ -91,4 +91,9 @@ For hacking, it's great to be able to run both games side-by-side with the
     bin/scott.pl    -a games/mini-adventure.dat 2>perl_trace.txt
     vimdiff c_trace.txt perl_trace.txt
 
+When you do this, enter the exact same series of commands for each and
+`ctrl-c` to exit when you've gotten to the point where behavior diverges
+(don't hit `q` to exit in the Perl code or you'll get a spurious trace
+difference).
+
 That usually shows where the code paths diverge.
