@@ -85,7 +85,7 @@ to be finished, you can run `make` and then you'll find `bin/ScottCurses`:
     bin/ScottCurses games/pirate_adventure.dat
 
 For hacking, it's great to be able to run both games side-by-side with the
-C<-a> (action) switch to compare divergences in behavior:
+`-a` (action) switch to compare divergences in behavior:
 
     bin/ScottCurses -a games/mini-adventure.dat 2>c_trace.txt
     bin/scott.pl    -a games/mini-adventure.dat 2>perl_trace.txt

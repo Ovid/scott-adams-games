@@ -173,7 +173,7 @@ sub RandomPercent {
     if ($TRACE) {
         local $" = ', ';
         say STDERR "RandomPercent(@_)";
-        return $_[0] > 50;
+        return $_[0] < 50;
     }
     my $n  = shift;
     my $rv = rand() << 6;

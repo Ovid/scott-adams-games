@@ -153,7 +153,7 @@ int RandomPercent(int n)
 {
     if (TRACE) {
         fprintf(stderr, "RandomPercent(%d)\n", n);
-        if (n > 50)
+        if (n < 50)
             return(1);
         return (0);
     }
