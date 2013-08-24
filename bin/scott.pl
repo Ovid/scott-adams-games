@@ -202,6 +202,7 @@ sub GetInput {
         chomp( my $input = $term->readline("Tell me what to do ? ") );
         next unless $input;
         $term->addhistory($input);
+        printf STDERR "\tInput was: %s\n" => $input;
 
         my @words = split ' ' => $input, 2;
         if ( @words > 2 ) {
