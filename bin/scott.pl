@@ -669,16 +669,16 @@ sub PerformActions {
         local $" = ', ';
         say STDERR "PerformActions(@_)";
     }
-    my ( $vb, $no ) = @_;
+    my ( $verb, $noun ) = @_;
 
     state $disable_sysfunc = 0;    # recursion lock?
     my $d = $BitFlags & ( 1 << DARKBIT );
 
-    if ( $vb == 1 && !defined $no ) {
+    if ( $verb == 1 && !defined $noun ) {
         say("Give me a direction too.");
         return 0;
     }
-    if ( $vb == 1 && $no >= 1 && $no <= 6 ) {
+    if ( $verb == 1 && $noun >= 1 && $noun <= 6 ) {
         my $nl;
         if (   $Items[LIGHT_SOURCE]{Location} == MyLoc
             || $Items[LIGHT_SOURCE]{Location} == CARRIED )
@@ -688,7 +688,7 @@ sub PerformActions {
         if ($d) {
             say("Dangerous to move in the dark! ");
         }
-        $nl = $Rooms[MyLoc]{Exits}[ $no - 1 ];
+        $nl = $Rooms[MyLoc]{Exits}[ $noun - 1 ];
 
         if ( $nl != 0 ) {
             $GameHeader{PlayerRoom} = $nl;
@@ -721,12 +721,12 @@ sub PerformActions {
 
         #/* Think this is now right. If a line we run has an action73
         #   run all following lines with vocab of 0,0 */
-        if ( $vb != 0 && ( $doagain && $vv != 0 ) ) {
+        if ( $verb != 0 && ( $doagain && $vv != 0 ) ) {
             last ACTIONS;
         }
 
         # Oops.. added this minor cockup fix 1.11
-        if ( $vb != 0 && !$doagain && $fl == 0 ) {
+        if ( $verb != 0 && !$doagain && $fl == 0 ) {
             last ACTIONS;
         }
         $nv = $vv % 150;
@@ -735,12 +735,12 @@ sub PerformActions {
         if ($TRACE) {
             printf STDERR
               "vv: %d\nvb: %d\ndoagain: %d\nVocab: %d\nnv: %d\nno: %d\nfl: %d\n",
-              $vv, $vb, $doagain, $Actions[$ct]{Vocab}, $nv, $no, $fl;
+              $vv, $verb, $doagain, $Actions[$ct]{Vocab}, $nv, $noun, $fl;
         }
-        if ( ( $vv == $vb ) || ( $doagain && $Actions[$ct]{Vocab} == 0 ) ) {
+        if ( ( $vv == $verb ) || ( $doagain && $Actions[$ct]{Vocab} == 0 ) ) {
             if (   ( $vv == 0 && RandomPercent($nv) )
                 || $doagain
-                || ( $vv != 0 && ( $nv == ( $no // -666 ) || $nv == 0 ) ) )
+                || ( $vv != 0 && ( $nv == ( $noun // -666 ) || $nv == 0 ) ) )
             {
                 my $f2;
                 if ( $fl == -1 ) { $fl = -2 }
@@ -751,7 +751,7 @@ sub PerformActions {
                     if ( $f2 == 2 ) {
                         $doagain = 1;
                     }
-                    if ( $vb != 0 && $doagain == 0 ) {
+                    if ( $verb != 0 && $doagain == 0 ) {
                         return;
                     }
                 }
@@ -778,10 +778,10 @@ sub PerformActions {
         {
             $d = 0;
         }
-        if ( $vb == GET || $vb == DROP ) {
+        if ( $verb == GET || $verb == DROP ) {
 
             # Yes they really _are_ hardcoded values
-            if ( $vb == GET ) {
+            if ( $verb == GET ) {
                 if ( strncasecmp( $NounText, "ALL", $GameHeader{WordLength} ) ) {
                     my $f = 0;
                     if ($d) {
@@ -793,9 +793,9 @@ sub PerformActions {
                             && defined $Items[$ct]{AutoGet}
                             && $Items[$ct]{AutoGet} !~ /^\*/ )
                         {
-                            $no = WhichWord( $Items[$ct]{AutoGet}, \@Nouns );
+                            $noun = WhichWord( $Items[$ct]{AutoGet}, \@Nouns );
                             $disable_sysfunc = 1;    #  Don't recurse into auto get !
-                            PerformActions( $vb, $no );    #  Recursively check each items table code
+                            PerformActions( $verb, $noun );    #  Recursively check each items table code
                             $disable_sysfunc = 0;
                             if ( CountCarried() == $GameHeader{MaxCarry} ) {
                                 if ($SECOND_PERSON) {
@@ -816,7 +816,7 @@ sub PerformActions {
                     }
                     return 0;
                 }
-                if ( not defined $no ) {
+                if ( not defined $noun ) {
                     say("What ? ");
                     return 0;
                 }
@@ -843,7 +843,7 @@ sub PerformActions {
                 say("O.K. ");
                 return 0;
             }
-            if ( $vb == DROP ) {
+            if ( $verb == DROP ) {
                 if ( strncasecmp( $NounText, "ALL", $GameHeader{WordLength} ) ) {
                     my $f = 0;
                     foreach my $ct ( 0 .. $GameHeader{NumItems} ) {
@@ -851,9 +851,9 @@ sub PerformActions {
                             && $Items[$ct]{AutoGet}
                             && $Items[$ct]{AutoGet} !~ /^\*/ )
                         {
-                            $no = WhichWord( $Items[$ct]{AutoGet}, \@Nouns );
+                            $noun = WhichWord( $Items[$ct]{AutoGet}, \@Nouns );
                             $disable_sysfunc = 1;
-                            PerformActions( $vb, $no );
+                            PerformActions( $verb, $noun );
                             $disable_sysfunc = 0;
                             $Items[$ct]{Location} = MyLoc;
                             say( $Items[$ct]{Text} . ": O.K.\n" );
@@ -865,7 +865,7 @@ sub PerformActions {
                     }
                     return 0;
                 }
-                if ( !defined $no ) {
+                if ( !defined $noun ) {
                     say("What ? ");
                     return 0;
                 }
