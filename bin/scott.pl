@@ -62,6 +62,7 @@ use constant LIGHTOUTBIT  => 16;     #  Light gone out
 our $SECOND_PERSON    = 1;           # "you are" instead of "I am";
 our $SCOTTLIGHT       = 0;           #  Authentic Scott Adams light messages
 our $DEBUGGING        = 0;           #  Info from database load
+our $DUMP_DATABASE    = 0;           #  dump database on load an exit
 our $PREHISTORIC_LAMP = 1;           #  Destroy the lamp (very old databases)
 our $TRACE            = 0;
 
@@ -425,12 +426,15 @@ sub PerformLine {
             print STDERR "ct: $ct\ncc: $cc\nact[cc]: $act[$cc]\n";
         }
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
+            say STDERR "\tPerformLine First";
             say( $Messages[ $act[$cc] ] );
         }
         elsif ( $act[$cc] > 101 ) {
+            say STDERR "\tPerformLine Second";
             say( $Messages[ $act[$cc] - 50 ] );
         }
         else {
+            say STDERR "\tPerformLine Switch";
             given ( $act[$cc] ) {
                 when (0) {    #  NOP
                 }
@@ -897,6 +901,7 @@ sub main {
     GetOptions(
         i => sub { $SECOND_PERSON = 0 },
         d => \$DEBUGGING,
+        D => \$DUMP_DATABASE,
         s => \$SCOTTLIGHT,
         p => \$PREHISTORIC_LAMP,
         a => \$TRACE,
@@ -1142,6 +1147,7 @@ sub LoadDatabase {
         print Data::Dumper->Dump( [ $Rooms[-1] ] => ['*last_room'] );
     }
 
+
     for ( 0 .. $GameHeader{NumMessages} ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
         if ( $_ == 0 && $debugging ) {
@@ -1177,6 +1183,13 @@ sub LoadDatabase {
         "Version %d.%02d of Adventure \n\n",
         $version / 100, $version % 100
     );
+    if ($DUMP_DATABASE) {
+        print Data::Dumper->Dump(
+            [  \%GameHeader, \@Actions, \@Nouns, \@Rooms, \@Messages, \@Items],
+            [qw/*GameHeader   *Actions   *Nouns   *Rooms   *Messages   *Items/]
+        );
+        exit;
+    }
 }
 
 sub Look {

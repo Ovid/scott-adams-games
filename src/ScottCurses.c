@@ -709,10 +709,12 @@ int *vb,*no;
             num=sscanf(buf,"%9s %9s",verb,noun);
         }
         while(num==0||*buf=='\n');
-        if (num == 1)
-            fprintf(stderr, "\tInput was: %s\n", verb);
-        else
-            fprintf(stderr, "\tInput was: %s %s\n", verb, noun);
+        if (TRACE) {
+            if (num == 1)
+                fprintf(stderr, "\tInput was: %s\n", verb);
+            else
+                fprintf(stderr, "\tInput was: %s %s\n", verb, noun);
+        }
         if(num==1)
             *noun=0;
         if(*noun==0 && strlen(verb)==1)
@@ -928,15 +930,18 @@ int PerformLine(int ct)
             fprintf(stderr, "ct: %d\ncc: %d\nact[cc]: %d\n", ct, cc, act[cc]);
         if(act[cc]>=1 && act[cc]<52)
         {
+            fprintf(stderr,"\tPerformLine First\n");
             Output(Messages[act[cc]]);
             Output("\n");
         }
         else if(act[cc]>101)
         {
+            fprintf(stderr,"\tPerformLine Second\n");
             Output(Messages[act[cc]-50]);
             Output("\n");
         }
         else {
+            fprintf(stderr,"\tPerformLine Switch\n");
             switch(act[cc])
             {
                 case 0:/* NOP */
