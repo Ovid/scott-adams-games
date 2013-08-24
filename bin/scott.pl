@@ -3,11 +3,11 @@
 use strict;
 use warnings 'FATAL' => 'all';
 use 5.010;
+
 use Getopt::Long;
 use autodie ':all';
 use Carp 'croak';
-use Carp::Always;
-use Storable 'dclone';
+use Term::ReadLine;
 $|++;
 
 our $VERSION = '0.01';
@@ -197,9 +197,11 @@ sub CountCarried {
 
 sub GetInput {
     say '-' x 80;
+    state $term = Term::ReadLine->new('adventure');
     GetInput: while (1) {
-        print "Tell me what to do ? ";
-        chomp( my $input = <STDIN> );
+        chomp( my $input = $term->readline("Tell me what to do ? ") );
+        next unless $input;
+        $term->addhistory($input);
 
         my @words = split ' ' => $input, 2;
         if ( @words > 2 ) {
