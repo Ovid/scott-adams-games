@@ -664,6 +664,7 @@ sub PerformLine {
 }
 
 sub PerformActions {
+    $_[1] //= -1;
     if ($TRACE) {
         local $" = ', ';
         say STDERR "PerformActions(@_)";
