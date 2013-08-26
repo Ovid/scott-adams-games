@@ -340,7 +340,7 @@ sub PerformLine {
         my $dv = int( $cv / 20 );
         $cv %= 20;
         if ($TRACE) {
-            printf STDERR "PerformLine top:\n\tcc: %d\n\tdv: %d\n\tcv: %d\n\tpptr: %d\n", $cc, $dv, $cv, $pptr;
+            say STDERR "PerformLine top:\n\tcc: $cc\n\tdv: $dv\n\tcv: $cv\n\tpptr: $pptr";
         }
         given ($cv) {
             when (0) { $param[ $pptr++ ] = $dv; }
@@ -426,18 +426,17 @@ sub PerformLine {
             print STDERR "ct: $ct\ncc: $cc\nact[cc]: $act[$cc]\n";
         }
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
-            say STDERR "\tPerformLine First";
+            say STDERR "\tPerformLine First" if $TRACE;
             say( $Messages[ $act[$cc] ] );
         }
         elsif ( $act[$cc] > 101 ) {
-            say STDERR "\tPerformLine Second";
+            say STDERR "\tPerformLine Second" if $TRACE;
             say( $Messages[ $act[$cc] - 50 ] );
         }
         else {
-            say STDERR "\tPerformLine Switch";
+            say STDERR "\tPerformLine Switch" if $TRACE;
             given ( $act[$cc] ) {
-                when (0) {    #  NOP
-                }
+                when (0) {}    #  NOP
                 when (52) {
                     if ( CountCarried() == $GameHeader{MaxCarry} ) {
                         if   ($SECOND_PERSON) { say("You are carrying too much. "); }
@@ -721,26 +720,23 @@ sub PerformActions {
     my $fl      = -1;
     my $doagain = 0;
     ACTIONS: foreach my $ct ( 0 .. $GameHeader{NumActions} ) {
-        my ( $vv, $nv );
-        $vv = $Actions[$ct]{Vocab};
+        my $vv = $Actions[$ct]{Vocab};
 
-        #/* Think this is now right. If a line we run has an action73
-        #   run all following lines with vocab of 0,0 */
-        if ( $verb != 0 && ( $doagain && $vv != 0 ) ) {
+        # Think this is now right. If a line we run has an action73
+        # run all following lines with vocab of 0,0
+        if ( $verb && ( $doagain && $vv != 0 ) ) {
             last ACTIONS;
         }
 
         # Oops.. added this minor cockup fix 1.11
-        if ( $verb != 0 && !$doagain && $fl == 0 ) {
+        if ( $verb && !$doagain && $fl == 0 ) {
             last ACTIONS;
         }
-        $nv = $vv % 150;
-        $vv /= 150;
-        $vv = int($vv);
+        my $nv = $vv % 150;
+        $vv = int( $vv / 150 );
+
         if ($TRACE) {
-            printf STDERR
-              "vv: %d\nvb: %d\ndoagain: %d\nVocab: %d\nnv: %d\nno: %d\nfl: %d\n",
-              $vv, $verb, $doagain, $Actions[$ct]{Vocab}, $nv, $noun, $fl;
+            say STDERR "vv: $vv\nvb: $verb\ndoagain: $doagain\nVocab: $Actions[$ct]{Vocab}\nnv: $nv\nno: $noun\nfl: $fl",
         }
         if ( ( $vv == $verb ) || ( $doagain && $Actions[$ct]{Vocab} == 0 ) ) {
             if (   ( $vv == 0 && RandomPercent($nv) )
@@ -944,16 +940,18 @@ END
 
     say Look();
     while (1) {
-        if ( $Redraw != 0 ) {
+        if ($Redraw) {
             say Look();
             $Redraw = 0;
         }
+
         PerformActions( 0, 0 );
 
-        if ( $Redraw != 0 ) {
+        if ($Redraw) {
             say Look();
             $Redraw = 0;
         }
+
         my ( $verb, $noun ) = GetInput();
         given ( PerformActions( $verb, $noun ) ) {
             when (-1) { say("I don't understand your command. ") }
@@ -1012,7 +1010,9 @@ sub _get_int {
 
 sub ReadString {
     my $fh = shift;
-    chomp( my $word = <$fh> );
+    my $word = <$fh>;
+    my $leading_newline = $word =~ /^"\n/;
+    chomp($word);
     if ( $word eq '"' ) {
 
         # This handles the case where a quoted multi-line string might start
@@ -1030,6 +1030,8 @@ END
         }
     }
     $word =~ s/^"|"$//g;
+    $word =~ s/`/"/g;
+    $word = "\n$word" if $leading_newline;
     return $word;
 }
 
@@ -1149,6 +1151,9 @@ sub LoadDatabase {
 
     for ( 0 .. $GameHeader{NumMessages} ) {    # XXX what happened here?
         push @Messages => ReadString($fh);
+        if ($TRACE) {
+            say STDERR "Message $_: $Messages[$_]";
+        }
         if ( $_ == 0 && $debugging ) {
             print Data::Dumper->Dump( [ $Messages[0] ] => ['*first_message'] );
         }

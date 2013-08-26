@@ -386,6 +386,8 @@ void LoadDatabase(FILE *f, int loud)
     while(ct<mn+1)
     {
         Messages[ct]=ReadString(f);
+        if (TRACE)
+            fprintf(stderr, "Message %d: %s\n", ct, Messages[ct]);
         if ( ct == 0 && loud )
             fprintf(stderr, "\r\nFirst message (%s)",Messages[0]);
         ct++;
