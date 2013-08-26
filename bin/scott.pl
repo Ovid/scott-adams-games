@@ -912,7 +912,7 @@ sub main {
         # Match the last line of gcc's output if the user hits CTRL-C to exist
         # the program. This makes a trace diff of the two files identical.
         $SIG{INT} = sub {
-            print STDERR "User exit.";
+            say STDERR "User exit.";
             exit;
         };
     }
