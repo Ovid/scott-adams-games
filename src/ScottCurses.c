@@ -796,7 +796,7 @@ void LoadGame(char *name)
     {
         fscanf(f,"%d %d\n",&Counters[ct],&RoomSaved[ct]);
     }
-    fscanf(f,"%ld %d %hd %d %d %hd\n",
+    fscanf(f,"%ld %hd %hd %d %d %hd\n",
         &BitFlags,&DarkFlag,&MyLoc,&CurrentCounter,&SavedRoom,
         &GameHeader.LightTime);
     /* Backward compatibility */
