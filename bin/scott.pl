@@ -920,7 +920,6 @@ sub main {
             exit;
         };
     }
-    $ARGV[0] //= 'adv00';    # XXX remove
     if ( !@ARGV ) {
         warn "$0 <database> <savefile>.\n";
         exit(1);
