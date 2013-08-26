@@ -932,13 +932,15 @@ int PerformLine(int ct)
             fprintf(stderr, "ct: %d\ncc: %d\nact[cc]: %d\n", ct, cc, act[cc]);
         if(act[cc]>=1 && act[cc]<52)
         {
-            fprintf(stderr,"\tPerformLine First\n");
+            if (TRACE)
+                fprintf(stderr,"\tPerformLine First\n");
             Output(Messages[act[cc]]);
             Output("\n");
         }
         else if(act[cc]>101)
         {
-            fprintf(stderr,"\tPerformLine Second\n");
+            if (TRACE)
+                fprintf(stderr,"\tPerformLine Second\n");
             Output(Messages[act[cc]-50]);
             Output("\n");
         }

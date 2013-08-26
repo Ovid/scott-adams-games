@@ -423,7 +423,7 @@ sub PerformLine {
     while ( $cc < 4 ) {
 
         if ($TRACE) {
-            print STDERR "ct: $ct\ncc: $cc\nact[cc]: $act[$cc]\n";
+            say STDERR "ct: $ct\ncc: $cc\nact[cc]: $act[$cc]";
         }
         if ( $act[$cc] >= 1 && $act[$cc] < 52 ) {
             say STDERR "\tPerformLine First" if $TRACE;
